@@ -1,0 +1,245 @@
+object frmMeusDados: TfrmMeusDados
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 520
+  ClientWidth = 360
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnShow = FormShow
+  DesignerMasterStyle = 0
+  object recFundoMeusDados: TRectangle
+    Align = Client
+    Fill.Color = claWhite
+    Size.Width = 360.000000000000000000
+    Size.Height = 520.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    object lytCabecalhoMeusDados: TLayout
+      Align = Top
+      Size.Width = 360.000000000000000000
+      Size.Height = 50.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object imgMDVoltar: TImage
+        MultiResBitmap.Height = 74
+        MultiResBitmap.Width = 74
+        MultiResBitmap = <
+          item
+            Width = 74
+            Height = 74
+            PNG = {
+              89504E470D0A1A0A0000000D494844520000004A0000004A08060000001CD0C2
+              71000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              044B49444154785EED985D6F146514C7CF79664BF7A5BE34514020F12378A577
+              5A351A690BDC90104B0434248440B4DBE05D35C4C418DFBBDB9A688B268A2692
+              D41B90EEAE484CC06FE037506340502094DD2DDDD9E778CEEC53DC2A489CEE4E
+              6636E77733CFF39F6E3BFDEF3967FE33A0288AA2288AA2288AA2288AA2284AFC
+              40778C9CD189EA6344E623B0F030183C502AF49FE2CB21773A7618778C94E7F2
+              371EB28493BC7C94AF603D58BB7FDB01C8B4CEC693C88D1A79F5C646CF9A5904
+              DCE12420830F98FBC873DB5812A95162122C9B396EB5ED4E62EC7543F0C6A9F7
+              CCA213624964466D7F657103F8E658BB493C90FE04F0762F1433DF3929B64462
+              94CC241FBCCF78586F731217125CE2F6DB572AA4179C126BBA3E17F8EEB619AC
+              994383A34E0A4CB21EBE542EA44B4E893D5D8D076212117EB2AA9296E10AF5E1
+              0BE562BAEC9444D0B58ADA71B8BAC91A9C6D37E926C05593C23D9542B24C12BA
+              52516252C3C355EDD604B8E6218C95A6321527258A8E57944480269963FF3429
+              45F07CA910FFBBDB9DE8684505394922405BBBAD98948408F05F742C1E3C7B64
+              713D34CCEA080070B9174C123AD27A329310D824C411274183E02222EC2D1733
+              679C9468D6DC7A5B5FAE6E313CB8F9570D3B2930892B696F793AF3BD9312CF9A
+              2A2A089384B3D856491226B99FF7F492494268A3C424DB6493DAEE6EBE0F7F70
+              8D8E55A633679DD43384322A089388AB2280B49B87B4B3329D3DE7A49E22D48C
+              1AC9D7BFE1C3CED6AE4515AACD5C2377C9F645FF8EEB6E581FFC944733A562F6
+              1D27FD6FC21A15DB57B6778496964AC5C1D06F51437DFBDC663FBB65626840FA
+              77B70C45B88A9AA83FE537E0CB540A363B0960C9AF527FEA5B5972B9C5AAFDF8
+              627CFE478FAF25F886CE51C3F9FAD3FCE12F78B945F6F266601D51BE5CCC1E97
+              7DAF11FA9B2F17323F70E5ECE39ABE20FB7E8041C4DAE7C3F9DAEBC10FF4186B
+              6A11310B53B05BA2414BC9610D6A47B9DADE6CED7B87D0ADD7CEE878FDC926C2
+              09767D432054AB3EE5721F0CFC969E9C9FC766A0259C8E18258C8CD79EE08762
+              C9570FCA3EC855942B58DB3F5999313CC2924DC78C12B64ED4860CE13C2F03B3
+              042298F2EAE9D74ECF715726988EDEC62B53D97348B0EBEF99C5DF04C2844DD7
+              DF1D3A44034E4A241DADA815246771989298104487004B9F5A4A1FE136BCEE94
+              44D115A384DB9AC5A1AF8F96C64F1607AFB97D62E89A518298C533EA2BFE239B
+              9C2433EB8459BE7968E1E3FBAF3A291174D52841A2C332C0D77D081B9D248F38
+              F3D46C1CAECCDC7BD949B1A7EB4609FFCA598C253A69FAECC1D2FB03B7067F9C
+              89C42861345F7BBC0938DF6E16F761C9F7E0E0990FB3BF3A25B6446694703BB3
+              C8DAB31EE0FED3D3D95F9C144B3A9AA3EEC64221FBA321DAB5F2202DA031CF58
+              C0B7868E52DA49B12452A38452317BDEAEA33168C2AD76B3861EC95CA1756E1B
+              4B22374A90044F1EBCC84FCBE7B9F97E62E9ED7B2E62B5755651144551144551
+              1445511445511445E924007F01111F74D38A8CC4300000000049454E44AE4260
+              82}
+            FileName = 'D:\Delphi\TCC\resources\imagens\Voltar.png'
+          end>
+        Align = MostLeft
+        MarginWrapMode = Tile
+        Margins.Left = 15.000000000000000000
+        Position.X = 15.000000000000000000
+        Size.Width = 30.000000000000000000
+        Size.Height = 50.000000000000000000
+        Size.PlatformDefault = False
+        OnClick = imgMDVoltarClick
+      end
+      object lblTituloMeusDados: TLabel
+        Align = Center
+        StyledSettings = [Family]
+        Margins.Right = 45.000000000000000000
+        Size.Width = 235.000000000000000000
+        Size.Height = 50.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Size = 14.000000000000000000
+        TextSettings.Font.StyleExt = {00070000000000000004000000}
+        TextSettings.FontColor = xFF404852
+        TextSettings.HorzAlign = Center
+        Text = 'Meus Dados'
+        TabOrder = 1
+      end
+    end
+    object ScrollMeusDados: TVertScrollBox
+      Align = Client
+      Size.Width = 360.000000000000000000
+      Size.Height = 470.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      ShowScrollBars = False
+      Viewport.Width = 360.000000000000000000
+      Viewport.Height = 470.000000000000000000
+      object lytMDFundo: TLayout
+        Align = Center
+        Margins.Bottom = 30.000000000000000000
+        Size.Width = 271.000000000000000000
+        Size.Height = 374.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        object lblMDUsuario: TLabel
+          Align = Top
+          StyledSettings = [Family]
+          Size.Width = 271.000000000000000000
+          Size.Height = 30.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Size = 14.000000000000000000
+          TextSettings.Font.StyleExt = {00060000000000000004000000}
+          TextSettings.FontColor = xFFADB3BF
+          Text = 'Usu'#225'rio'
+          TabOrder = 3
+        end
+        object edtMDUsuario: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Top
+          TabOrder = 7
+          TextSettings.FontColor = xFFB0BAC9
+          Position.Y = 30.000000000000000000
+          Enabled = False
+          Size.Width = 271.000000000000000000
+          Size.Height = 32.000000000000000000
+          Size.PlatformDefault = False
+          StyledSettings = [Family, Size, Style]
+          KillFocusByReturn = True
+        end
+        object recMDSalvar: TRectangle
+          Align = Top
+          Fill.Color = xFF535BFE
+          Margins.Top = 40.000000000000000000
+          Position.Y = 288.000000000000000000
+          Size.Width = 271.000000000000000000
+          Size.Height = 50.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Kind = None
+          XRadius = 20.000000000000000000
+          YRadius = 20.000000000000000000
+          object lblMDSalvar: TLabel
+            Align = Center
+            StyledSettings = [Family]
+            Locked = True
+            Size.Width = 271.000000000000000000
+            Size.Height = 30.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Size = 14.000000000000000000
+            TextSettings.FontColor = claWhite
+            TextSettings.HorzAlign = Center
+            Text = 'Salvar'
+            TabOrder = 0
+          end
+        end
+        object edtMDSenha: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Top
+          StyleLookup = 'editstyle'
+          TabOrder = 4
+          Password = True
+          TextSettings.FontColor = xFFB0BAC9
+          Position.Y = 216.000000000000000000
+          Size.Width = 271.000000000000000000
+          Size.Height = 32.000000000000000000
+          Size.PlatformDefault = False
+          StyledSettings = [Family, Size, Style]
+          KillFocusByReturn = True
+        end
+        object lblMDSenha: TLabel
+          Align = Top
+          StyledSettings = [Family]
+          Position.Y = 186.000000000000000000
+          Size.Width = 271.000000000000000000
+          Size.Height = 30.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Size = 14.000000000000000000
+          TextSettings.Font.StyleExt = {00060000000000000004000000}
+          TextSettings.FontColor = xFFADB3BF
+          Text = 'Senha'
+          TabOrder = 2
+        end
+        object lblMDEmail: TLabel
+          Align = Top
+          StyledSettings = [Family]
+          Position.Y = 124.000000000000000000
+          Size.Width = 271.000000000000000000
+          Size.Height = 30.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Size = 14.000000000000000000
+          TextSettings.Font.StyleExt = {00060000000000000004000000}
+          TextSettings.FontColor = xFFADB3BF
+          Text = 'Email'
+          TabOrder = 1
+        end
+        object lblMDCPF: TLabel
+          Align = Top
+          StyledSettings = [Family]
+          Position.Y = 62.000000000000000000
+          Size.Width = 271.000000000000000000
+          Size.Height = 30.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Size = 14.000000000000000000
+          TextSettings.Font.StyleExt = {00060000000000000004000000}
+          TextSettings.FontColor = xFFADB3BF
+          Text = 'CPF'
+          TabOrder = 0
+        end
+        object edtMDEmail: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Top
+          TabOrder = 6
+          TextSettings.FontColor = xFFB0BAC9
+          Position.Y = 154.000000000000000000
+          Size.Width = 271.000000000000000000
+          Size.Height = 32.000000000000000000
+          Size.PlatformDefault = False
+          StyledSettings = [Family, Size, Style]
+          KillFocusByReturn = True
+        end
+        object edtMDCPF: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Top
+          TabOrder = 5
+          KeyboardType = DecimalNumberPad
+          TextSettings.FontColor = xFFB0BAC9
+          Position.Y = 92.000000000000000000
+          Enabled = False
+          Size.Width = 271.000000000000000000
+          Size.Height = 32.000000000000000000
+          Size.PlatformDefault = False
+          StyledSettings = [Family, Size, Style]
+          KillFocusByReturn = True
+        end
+      end
+    end
+  end
+end

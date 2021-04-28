@@ -1,0 +1,152 @@
+object frmHistorico: TfrmHistorico
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 520
+  ClientWidth = 360
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object recFundoHistorico: TRectangle
+    Align = Client
+    Fill.Color = claWhite
+    Size.Width = 360.000000000000000000
+    Size.Height = 520.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    object lytCabecalhoHistorico: TLayout
+      Align = Top
+      Size.Width = 360.000000000000000000
+      Size.Height = 50.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object imgHistorico: TImage
+        MultiResBitmap.Height = 74
+        MultiResBitmap.Width = 74
+        MultiResBitmap = <
+          item
+            Width = 74
+            Height = 74
+            PNG = {
+              89504E470D0A1A0A0000000D494844520000004A0000004A08060000001CD0C2
+              71000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              044C49444154785EED986D6F145514C7CFB9B3DBEE6EBA4A130504123F82AFF4
+              9D568D46DA026F488825021A124220DA6DF05D35C4C4189FBBDB9A688B268A26
+              92D437209D5D919880DFC06FA0C688200F619F4A77F61ECF99BDC5AD82C4E9EC
+              6466737F6FE6DEFF74DBE97FCF39F39F018BC562B1582C168BC562B1582C168B
+              C5123FD01C23677CAAFE1891FA08343C0C0A0FB9C5C1337C39644EC70E658E91
+              F25CA1F690269CE6E5A37C051B41EB833B0E41B673369E446ED4D8ABB5CD8E56
+              F308B8CB48400A1F50F79363B6B12452A3C42458510BDC6A3B8DC4E89B8AE08D
+              33EFA9AA1162496446ED7CA5BA093C75A2DB241E4857019CBD4BA5EC77468A2D
+              91182533C903E7331ED63B8CC4850497B9FD0EB8C5CC9251624DCFE702DFDDB6
+              82560BA870DC48BE49DAC197CAC58C6B94D8D3D378202611E1276B2A6905AE51
+              1A5F28973265A324829E55D4AEA3F52D5AE17CB749B700AEAB14EEAB14936592
+              D0938A12935A0EAE69B736C00D0761C29DC9568C942842AF2889006D5227FE69
+              528AE079B718FFBBDBDD08B5A2FC9C2411A0ABDD564D4A4204F82F428B07CF1E
+              AB6E84965A1B0100AEF483494228AD273309814D421C3312B4082E21C2FE7229
+              7BCE488966DDADB7FDE5FA36C5839B7FD5A8917C93B892F69767B3DF1B29F1AC
+              ABA2FC3049388F5D95246192FB795F3F992404364A4CD26D36A9EBEEE679F027
+              D7E84465367BDE487D4320A3FC3089B8260248BB3948BB2BB3B90B46EA2B02CD
+              A8B142F31B3EECEEEC3A54A1DACEB7F297753AFA775CF7427BE0A51C9A734BB9
+              778CF4BF096A546C5FD9DE155A5E764BC381DFA206FAF6B9CD7E36CBC4D082CC
+              1F661988601535D57CCA6BC197A9146C3512C0B257A7C1D4B7B2E4728B55FBF1
+              C578FC8F9E5C4FF00D9CA3460BCDA7F9C35FF0729BECE5CDC00051A15CCA9D94
+              7DBF11F89B2F17B33F70E51CE09AFE5DF68300C388B5CF470B8DD7FD1FE833D6
+              D5226216A660AF44838E92C71AD48E73B5BDD9D9F70F815BAF9BF1C9E6936D84
+              53ECFA265FA8563DCAE73F18FA2D33BDB8886D5F4B38A118258C4D369EE08762
+              C9570FCADECF55942F6A3D385D99533CC2924D684609DBA71A238A709197BE59
+              0211CC38CDCC6B6717B061A44412EA6DBC3293BB80047BFE9E59FC4D204CE94C
+              F3DD91233464A444126A45AD22398BC394C4043F3AF868FA5453E618B7E14DA3
+              248A9E1825DCD12C0E7D695A9E3C5D1ABE61F689A16746096216CFA8AFF88F6C
+              3192CCAC536AE5D691A58F375C375222E8A9518244871580AFD3089B8D248F38
+              8BD46E1DADCCDD77C548B1A7E74609FFCA598C263AADD2FAB0FBFED0EDC11F67
+              22314A182F341E6F032E769BC57DE87A0E1C3EF761EE57A3C496C88C12EE6416
+              697DDE013C787636F78B916249A839EA5E2C15733F2AA23DAB0FD2022AF58C06
+              7C6BE438658C144B22354A704BB98B7A8026A00DB7DB4D2B7A247B8D06CC3696
+              446E9420099E1C78919F962F72F3FDC4D2DBF94B58EF9CB5582C168BC562B158
+              2C168BC562B1582C164B9800FC0576B274CFB0AFEB130000000049454E44AE42
+              6082}
+            FileName = 'D:\Delphi\TCC\resources\imagens\Voltar.png'
+          end>
+        Align = MostLeft
+        MarginWrapMode = Tile
+        Margins.Left = 15.000000000000000000
+        Position.X = 15.000000000000000000
+        Size.Width = 30.000000000000000000
+        Size.Height = 50.000000000000000000
+        Size.PlatformDefault = False
+      end
+      object lblTituloHistorico: TLabel
+        Align = Center
+        StyledSettings = [Family]
+        Margins.Right = 45.000000000000000000
+        Size.Width = 235.000000000000000000
+        Size.Height = 50.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Size = 14.000000000000000000
+        TextSettings.Font.StyleExt = {00070000000000000004000000}
+        TextSettings.FontColor = xFF404852
+        TextSettings.HorzAlign = Center
+        Text = 'Hist'#243'rico'
+        TabOrder = 0
+      end
+    end
+    object lvwHistorico: TListView
+      ItemAppearanceClassName = 'TDynamicAppearance'
+      ItemEditAppearanceClassName = 'TDynamicAppearance'
+      HeaderAppearanceClassName = 'TListHeaderObjects'
+      FooterAppearanceClassName = 'TListHeaderObjects'
+      OnUpdateObjects = lvwHistoricoUpdateObjects
+      Align = Client
+      Margins.Top = 30.000000000000000000
+      Size.Width = 360.000000000000000000
+      Size.Height = 440.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      ItemAppearance.ItemHeight = 80
+      ItemAppearanceObjects.ItemObjects.ObjectsCollection = <
+        item
+          AppearanceObjectName = 'Text1'
+          AppearanceClassName = 'TTextObjectAppearance'
+          Appearance.Font.Size = 14.000000000000000000
+          Appearance.Font.StyleExt = {00070000000000000004000000}
+          Appearance.TextAlign = Leading
+          Appearance.TextColor = xFF404854
+          Appearance.Width = 250.000000000000000000
+          Appearance.Height = 40.000000000000000000
+          Appearance.PlaceOffset.X = 45.000000000000000000
+        end
+        item
+          AppearanceObjectName = 'Image2'
+          AppearanceClassName = 'TImageObjectAppearance'
+          Appearance.Width = 40.000000000000000000
+          Appearance.Height = 80.000000000000000000
+        end
+        item
+          AppearanceObjectName = 'Accessory3'
+          AppearanceClassName = 'TAccessoryObjectAppearance'
+          Appearance.Width = 30.000000000000000000
+          Appearance.Height = 80.000000000000000000
+          Appearance.VertAlign = Trailing
+          Appearance.PlaceOffset.X = 309.000000000000000000
+        end
+        item
+          AppearanceObjectName = 'Text4'
+          AppearanceClassName = 'TTextObjectAppearance'
+          Appearance.TextAlign = Leading
+          Appearance.TextColor = xFF404854
+          Appearance.Width = 250.000000000000000000
+          Appearance.Height = 40.000000000000000000
+          Appearance.PlaceOffset.X = 45.000000000000000000
+          Appearance.PlaceOffset.Y = 40.000000000000000000
+        end>
+      ItemAppearanceObjects.ItemEditObjects.ObjectsCollection = <
+        item
+          AppearanceObjectName = 'Text1'
+          AppearanceClassName = 'TTextObjectAppearance'
+        end>
+      StyleLookup = 'listviewstyle'
+    end
+  end
+end

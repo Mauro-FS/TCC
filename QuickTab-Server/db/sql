@@ -1,0 +1,56 @@
+CREATE TABLE tb_usuario (
+   sequsuario integer PRIMARY KEY AUTOINCREMENT,
+   nome text NOT NULL,   
+   senha text NOT NULL,
+   cpf integer NOT NULL,
+   email text NOT NULL
+);
+
+CREATE TABLE tb_produto (
+   seqproduto integer PRIMARY KEY AUTOINCREMENT,
+   nome text NOT NULL,   
+   descricao text NOT NULL,   
+   categoria text  NULL,
+   preco decimal NOT NULL,
+   imagem blob NULL,
+   seqprodutoadicional NULL,
+   FOREIGN KEY (seqprodutoadicional)
+     REFERENCES tb_produto (seqproduto)
+);
+
+
+CREATE TABLE tb_pedido (
+   seqpedido integer PRIMARY KEY AUTOINCREMENT, 
+   sequsuario text NOT NULL,      
+   mesa text NOT NULL,
+   status text NOT NULL,
+   statusimpressao text NOT NULL,  
+   FOREIGN KEY (sequsuario)
+     REFERENCES tb_usuario (sequsuario)    
+);
+
+CREATE TABLE tb_pedidoitem (
+   seqpedidoitem integer PRIMARY KEY AUTOINCREMENT,
+   seqpedido integer NOT NULL,     
+   seqproduto integer NOT NULL,     
+   FOREIGN KEY (seqpedido)
+     REFERENCES tb_pedido (seqpedido)   
+   FOREIGN KEY (seqproduto)
+     REFERENCES tb_produto (seqproduto)   
+);
+
+select * from cliente;
+
+
+select * from usuario;
+
+
+delete from tb_livro;
+
+SELECT * FROM tb_usuario;
+SELECT * FROM tb_livro;
+select * from tb_favoritos;
+SELECT nome, sobrenome, email FROM tb_usuario;
+insert into tb_favoritos values (null, 1)
+
+

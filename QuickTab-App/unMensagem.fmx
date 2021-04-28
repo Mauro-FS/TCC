@@ -1,0 +1,99 @@
+object frmMensagem: TfrmMensagem
+  Left = 0
+  Top = 0
+  BorderIcons = []
+  BorderStyle = Single
+  ClientHeight = 215
+  ClientWidth = 300
+  Fill.Kind = Solid
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object lytBotoes: TLayout
+    Align = Client
+    Size.Width = 300.000000000000000000
+    Size.Height = 126.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object recCancelar: TRectangle
+      Align = Left
+      Fill.Color = xFF535BFE
+      Margins.Left = 15.000000000000000000
+      Margins.Top = 37.000000000000000000
+      Margins.Right = 10.000000000000000000
+      Margins.Bottom = 37.000000000000000000
+      Position.X = 15.000000000000000000
+      Position.Y = 37.000000000000000000
+      Size.Width = 110.000000000000000000
+      Size.Height = 52.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Kind = None
+      XRadius = 20.000000000000000000
+      YRadius = 20.000000000000000000
+      OnClick = recCancelarClick
+      object lblCancelar: TLabel
+        Align = Center
+        StyledSettings = [Family]
+        Locked = True
+        Size.Width = 100.000000000000000000
+        Size.Height = 30.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Size = 16.000000000000000000
+        TextSettings.FontColor = claWhite
+        TextSettings.HorzAlign = Center
+        Text = 'N'#227'o'
+        TabOrder = 0
+      end
+    end
+    object recAceitar: TRectangle
+      Align = Right
+      Fill.Color = xFF535BFE
+      Margins.Left = 15.000000000000000000
+      Margins.Top = 37.000000000000000000
+      Margins.Right = 10.000000000000000000
+      Margins.Bottom = 37.000000000000000000
+      Position.X = 180.000000000000000000
+      Position.Y = 37.000000000000000000
+      Size.Width = 110.000000000000000000
+      Size.Height = 52.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Kind = None
+      XRadius = 20.000000000000000000
+      YRadius = 20.000000000000000000
+      OnClick = recAceitarClick
+      object lblAceitar: TLabel
+        Align = Center
+        StyledSettings = [Family]
+        Locked = True
+        Size.Width = 100.000000000000000000
+        Size.Height = 30.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Size = 16.000000000000000000
+        TextSettings.FontColor = claWhite
+        TextSettings.HorzAlign = Center
+        Text = 'Sim'
+        TabOrder = 0
+      end
+    end
+  end
+  object lytMensagem: TLayout
+    Align = Top
+    Size.Width = 300.000000000000000000
+    Size.Height = 89.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object lblMensagem: TLabel
+      Align = Center
+      StyledSettings = [Family, Style]
+      Size.Width = 305.000000000000000000
+      Size.Height = 75.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Size = 18.000000000000000000
+      TextSettings.FontColor = xFF404852
+      TextSettings.HorzAlign = Center
+      Text = 'lblMensagem'
+      TabOrder = 0
+    end
+  end
+end

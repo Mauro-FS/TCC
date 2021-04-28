@@ -1,0 +1,220 @@
+object frmAlterarSenha: TfrmAlterarSenha
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 520
+  ClientWidth = 360
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object recFundoAlterarSenha: TRectangle
+    Align = Client
+    Fill.Color = claWhite
+    Size.Width = 360.000000000000000000
+    Size.Height = 520.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    object lytCabecalhoAlterarSenha: TLayout
+      Align = Top
+      Size.Width = 360.000000000000000000
+      Size.Height = 50.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object imgMDVoltar: TImage
+        MultiResBitmap.Height = 74
+        MultiResBitmap.Width = 74
+        MultiResBitmap = <
+          item
+            Width = 74
+            Height = 74
+            PNG = {
+              89504E470D0A1A0A0000000D494844520000004A0000004A08060000001CD0C2
+              71000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              044D49444154785EED986F6F145514C6CFB9B3DBEE6EEA4A130504123F82AFF4
+              9D568D46DA026F488825021A124220DA6DF05D35C4C418FF77B735D1164D144D
+              24A96F403ABB223101BF81DF408D1141FE6497DD2DDDD97B3C67F616B70A12A7
+              B39399CDFDBD997B9FE9B6D367CF39F3CC80C562B1582C168BC562B1582C168B
+              C562891F688E91333E557F8C487D041A1E068587DCE2E019BE1C32A7638732C7
+              4879AE70F3214D38CDCB47F90A3682D607771C826CE76C3C89DCA8B1576F6E76
+              B49A47C05D460252F880BA9F1CB38D25911A2526C18A5AE056DB6924465715C1
+              1B67DE533523C492C88CDAF94A6D1378EA44B7493C90AE02387B974AD9EF8C14
+              5B22314A669207CE673CAC7718890B092E73FB1D708B9925A3C49A9ECF05BEBB
+              6D05AD1650E1B8917C93B4832F958B19D728B1A7A7F1404C22C24FD654D20A5C
+              A334BE502E65CA4649043DABA85D47EB5BB4C2F96E936E015C5729DC572926CB
+              24A127152526B51C5CD36E6D801B0EC2843B93AD182951845E511201DAA44EFC
+              D3A414C1F36E31FE77B7BB116A45F93949224057BBAD9A948408F05F84160F9E
+              3D56DB082DB53602005CE9079384505A4F6612029B8438662468115C4284FDE5
+              52F69C9112CDBA5B6FFBCBF56D8A0737FFAA5123F9267125ED2FCF66BF3752E2
+              595745F96192701EBB2A49C224F7F3BE7E3249086C9498A4DB6C52D7DDCDF3E0
+              4FAED189CA6CF6BC91FA864046F96112714D049076739076576673178CD45704
+              9A516385E6377CD8DDD975A842B59D6FE52FEB74F4EFB8EE85F6C04B3934E796
+              72EF18E97F13D4A8D8BEB2BD2BB4BCEC968603BF450DF4ED739BFD6C9689A105
+              993FCC3210C12A6AAAF994D7822F5329D86A248065AF4E83A96F65C9E516ABF6
+              E38BF1F81F3DB99EE01B38478D169A4FF387BFE0E536D9CB9B8101A242B9943B
+              29FB7E23F0375F2E667FE0CA39C035FDBBEC070186116B9F8F161AAFFB3FD067
+              ACAB45C42C4CC15E89061D258F35A81DE76A7BB3B3EF1F02B75E37E393CD27DB
+              08A7D8F54DBE50AD7A94CF7F30F45B667A7111DBBE967042314A189B6C3CC10F
+              C592AF1E94BD9FAB285FD47A70BA32A77884259BD08C12B64F354614E1222F7D
+              B3042298719A99D7CE2E60C3488924D4DB786526770109F6FC3DB3F89B4098D2
+              99E6BB234768C8488924D48A5A457216872989097E74F0D1F4A9A6CC316EC3AA
+              5112454F8C12EE681687BE342D4F9E2E0DDF30FBC4D033A304318B67D457FC47
+              B6184966D629B572EBC8D2C71BAE1B2911F4D42841A2C30AC0D76984CD469247
+              9C456AB78E56E6F2578C147B7A6E94F0AF9CC568A2D32AAD0FBBEF0FDD1EFC71
+              2612A384F142E3F136E062B759DC87AEE7C0E1731FE67E354A6C89CC28E14E66
+              91D6E71DC083676773BF182996849AA3EEC55231F7A322DAB3FA202DA052CF68
+              C0B7468E53C648B12452A304B794BBA8076802DA70BBDDB4A247B2D768C06C63
+              49E4460992E0C98117F969F92237DF4F2CBD7DDF25AC77CE5A2C168BC562B158
+              2C168BC562B1582C168B254C00FE02298374CD4D5D78CA0000000049454E44AE
+              426082}
+            FileName = 'D:\Delphi\TCC\resources\imagens\Voltar.png'
+          end>
+        Align = MostLeft
+        MarginWrapMode = Tile
+        Margins.Left = 15.000000000000000000
+        Position.X = 15.000000000000000000
+        Size.Width = 30.000000000000000000
+        Size.Height = 50.000000000000000000
+        Size.PlatformDefault = False
+        OnClick = imgMDVoltarClick
+      end
+      object lblTituloAlteraSenha: TLabel
+        Align = Center
+        StyledSettings = [Family]
+        Margins.Right = 45.000000000000000000
+        Size.Width = 235.000000000000000000
+        Size.Height = 50.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Size = 14.000000000000000000
+        TextSettings.Font.StyleExt = {00070000000000000004000000}
+        TextSettings.FontColor = xFF404852
+        TextSettings.HorzAlign = Center
+        Text = 'Alterar Senha'
+        TabOrder = 1
+      end
+    end
+    object ScrollMeusDados: TVertScrollBox
+      Align = Client
+      Size.Width = 360.000000000000000000
+      Size.Height = 470.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      ShowScrollBars = False
+      Viewport.Width = 360.000000000000000000
+      Viewport.Height = 470.000000000000000000
+      object lytMDFundo: TLayout
+        Align = Center
+        Margins.Bottom = 30.000000000000000000
+        Size.Width = 271.000000000000000000
+        Size.Height = 374.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        object edtSenhaConfirmar: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Top
+          TabOrder = 5
+          Password = True
+          TextSettings.FontColor = xFFB0BAC9
+          Position.Y = 154.000000000000000000
+          Size.Width = 271.000000000000000000
+          Size.Height = 32.000000000000000000
+          Size.PlatformDefault = False
+          StyledSettings = [Family, Size, Style]
+          KillFocusByReturn = True
+        end
+        object recSalvar: TRectangle
+          Align = Top
+          Fill.Color = xFF535BFE
+          Margins.Top = 40.000000000000000000
+          Position.Y = 226.000000000000000000
+          Size.Width = 271.000000000000000000
+          Size.Height = 50.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Kind = None
+          XRadius = 20.000000000000000000
+          YRadius = 20.000000000000000000
+          OnClick = recSalvarClick
+          object lblMDSalvar: TLabel
+            Align = Center
+            StyledSettings = [Family]
+            Locked = True
+            Size.Width = 271.000000000000000000
+            Size.Height = 30.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Size = 14.000000000000000000
+            TextSettings.FontColor = claWhite
+            TextSettings.HorzAlign = Center
+            Text = 'Salvar'
+            TabOrder = 0
+          end
+        end
+        object edtSenha: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Top
+          StyleLookup = 'editstyle'
+          TabOrder = 3
+          Password = True
+          TextSettings.FontColor = xFFB0BAC9
+          Position.Y = 92.000000000000000000
+          Size.Width = 271.000000000000000000
+          Size.Height = 32.000000000000000000
+          Size.PlatformDefault = False
+          StyledSettings = [Family, Size, Style]
+          KillFocusByReturn = True
+        end
+        object lblMDSenha: TLabel
+          Align = Top
+          StyledSettings = [Family]
+          Position.Y = 62.000000000000000000
+          Size.Width = 271.000000000000000000
+          Size.Height = 30.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Size = 14.000000000000000000
+          TextSettings.Font.StyleExt = {00060000000000000004000000}
+          TextSettings.FontColor = xFFADB3BF
+          Text = 'Nova Senha'
+          TabOrder = 2
+        end
+        object lblMDEmail: TLabel
+          Align = Top
+          StyledSettings = [Family]
+          Size.Width = 271.000000000000000000
+          Size.Height = 30.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Size = 14.000000000000000000
+          TextSettings.Font.StyleExt = {00060000000000000004000000}
+          TextSettings.FontColor = xFFADB3BF
+          Text = 'Email'
+          TabOrder = 1
+        end
+        object edtEmail: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Top
+          TabOrder = 4
+          TextSettings.FontColor = xFFB0BAC9
+          Position.Y = 30.000000000000000000
+          Size.Width = 271.000000000000000000
+          Size.Height = 32.000000000000000000
+          Size.PlatformDefault = False
+          StyledSettings = [Family, Size, Style]
+          KillFocusByReturn = True
+        end
+        object lblSenhaConfirmar: TLabel
+          Align = Top
+          StyledSettings = [Family]
+          Position.Y = 124.000000000000000000
+          Size.Width = 271.000000000000000000
+          Size.Height = 30.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.Size = 14.000000000000000000
+          TextSettings.Font.StyleExt = {00060000000000000004000000}
+          TextSettings.FontColor = xFFADB3BF
+          Text = 'Repita a senha'
+          TabOrder = 0
+        end
+      end
+    end
+  end
+end

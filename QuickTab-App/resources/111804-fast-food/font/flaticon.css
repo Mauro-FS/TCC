@@ -1,0 +1,71 @@
+	/*
+  	Flaticon icon font: Flaticon
+  	Creation date: 22/06/2016 15:24
+  	*/
+
+@font-face {
+  font-family: "Flaticon";
+  src: url("./Flaticon.eot");
+  src: url("./Flaticon.eot?#iefix") format("embedded-opentype"),
+       url("./Flaticon.woff") format("woff"),
+       url("./Flaticon.ttf") format("truetype"),
+       url("./Flaticon.svg#Flaticon") format("svg");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  @font-face {
+    font-family: "Flaticon";
+    src: url("./Flaticon.svg#Flaticon") format("svg");
+  }
+}
+
+[class^="flaticon-"]:before, [class*=" flaticon-"]:before,
+[class^="flaticon-"]:after, [class*=" flaticon-"]:after {   
+  font-family: Flaticon;
+        font-size: 20px;
+font-style: normal;
+margin-left: 20px;
+}
+
+.flaticon-big-burger:before { content: "\f100"; }
+.flaticon-brochette:before { content: "\f101"; }
+.flaticon-buger-and-soda:before { content: "\f102"; }
+.flaticon-burger:before { content: "\f103"; }
+.flaticon-burguer:before { content: "\f104"; }
+.flaticon-canape:before { content: "\f105"; }
+.flaticon-cheeseburger:before { content: "\f106"; }
+.flaticon-chicken-thighs:before { content: "\f107"; }
+.flaticon-chinese-noodles:before { content: "\f108"; }
+.flaticon-coffee:before { content: "\f109"; }
+.flaticon-cupcake:before { content: "\f10a"; }
+.flaticon-doner-kebab:before { content: "\f10b"; }
+.flaticon-donut:before { content: "\f10c"; }
+.flaticon-french-fries:before { content: "\f10d"; }
+.flaticon-french-fries-1:before { content: "\f10e"; }
+.flaticon-french-hot-dog:before { content: "\f10f"; }
+.flaticon-fried-chicken:before { content: "\f110"; }
+.flaticon-hamburger:before { content: "\f111"; }
+.flaticon-hot-dog:before { content: "\f112"; }
+.flaticon-hot-dog-1:before { content: "\f113"; }
+.flaticon-hot-dog-in-pita:before { content: "\f114"; }
+.flaticon-ice-cream:before { content: "\f115"; }
+.flaticon-ice-cream-1:before { content: "\f116"; }
+.flaticon-iced-coffee:before { content: "\f117"; }
+.flaticon-kebab-roll:before { content: "\f118"; }
+.flaticon-ketchup-and-mustard:before { content: "\f119"; }
+.flaticon-macaron:before { content: "\f11a"; }
+.flaticon-muffin:before { content: "\f11b"; }
+.flaticon-nuggets:before { content: "\f11c"; }
+.flaticon-pancake:before { content: "\f11d"; }
+.flaticon-pizza:before { content: "\f11e"; }
+.flaticon-potato:before { content: "\f11f"; }
+.flaticon-rolls:before { content: "\f120"; }
+.flaticon-sandwich:before { content: "\f121"; }
+.flaticon-sandwich-1:before { content: "\f122"; }
+.flaticon-soda:before { content: "\f123"; }
+.flaticon-soda-1:before { content: "\f124"; }
+.flaticon-soda-2:before { content: "\f125"; }
+.flaticon-souce:before { content: "\f126"; }
+.flaticon-waffle:before { content: "\f127"; }

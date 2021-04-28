@@ -1,0 +1,67 @@
+object frameFundo: TframeFundo
+  Size.Width = 360.000000000000000000
+  Size.Height = 520.000000000000000000
+  Size.PlatformDefault = False
+  Visible = False
+  object recFundo: TRectangle
+    Align = Client
+    Fill.Color = claCornflowerblue
+    Opacity = 0.600000023841857900
+    Size.Width = 360.000000000000000000
+    Size.Height = 520.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    Stroke.Thickness = 0.000000000000000000
+  end
+  object recMensagem: TRectangle
+    Align = Center
+    Fill.Color = claWhite
+    Size.Width = 273.000000000000000000
+    Size.Height = 225.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    XRadius = 20.000000000000000000
+    YRadius = 20.000000000000000000
+    object lytAnimacao: TLayout
+      Align = Client
+      Size.Width = 273.000000000000000000
+      Size.Height = 136.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object Arc1: TArc
+        Align = Center
+        Size.Width = 80.000000000000000000
+        Size.Height = 80.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Color = xFF535BFE
+        Stroke.Thickness = 3.000000000000000000
+        EndAngle = -90.000000000000000000
+        object FloatAnimar: TFloatAnimation
+          Duration = 0.699999988079071000
+          Loop = True
+          StartValue = 0.000000000000000000
+          StopValue = 360.000000000000000000
+        end
+      end
+    end
+    object lytMensagem: TLayout
+      Align = Top
+      Size.Width = 273.000000000000000000
+      Size.Height = 89.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      object lblMensagem: TLabel
+        Align = Center
+        StyledSettings = [Family, Style]
+        Size.Width = 305.000000000000000000
+        Size.Height = 75.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Size = 18.000000000000000000
+        TextSettings.FontColor = xFF404852
+        TextSettings.HorzAlign = Center
+        Text = 'lblMensagem'
+        TabOrder = 0
+      end
+    end
+  end
+end
