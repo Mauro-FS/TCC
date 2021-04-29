@@ -106,6 +106,7 @@ type
     function RemoverItemPedido(Index: integer): Boolean;
     function PedidoFeito: Boolean;
     function ResetarInterface: Boolean;
+    function DescricaoCategoria(AValue: String): String;
   end;
 
 var
@@ -292,10 +293,16 @@ begin
       begin
         Add(TframeCategoria.Create(ScrollCategorias));
         Items[I].Name := Items[I].Name + I.ToString;
-        Items[I].lblCategoria.Text := Categorias[I];
+        Items[I].lblCategoria.Text :=  DescricaoCategoria(Categorias[I]);
         Items[I].Align := TAlignLayout.MostLeft;
         Items[I].TagString := Categorias[I];
         Items[I].OnClick := CategoriaClick;
+
+       {$IF DEFINED(iOS) or DEFINED(ANDROID)}
+        Items[I].imgCategoria.Bitmap.LoadFromFile(Path.Combine(TPath.GetDocumentsPath, Categorias[I] + '.png'));
+       {$ELSE}
+        Items[I].imgCategoria.Bitmap.LoadFromFile(TDirectory.GetParent(GetCurrentDir) + PathDelim + 'resources\imagens\' + Categorias[I] +'.png' );
+       {$ENDIF}
         ScrollCategorias.AddObject(Items[I]);
       end;
     end;
@@ -323,7 +330,6 @@ begin
   FframeCategoriasProdutos := TObjectList<TframeCategoria>.Create;
   FframeProdutosPedido := TObjectList<TframeItemPedido>.Create;
   FframeItensMenu := TObjectList<TframeItemMenu>.Create;
-
 end;
 
 procedure TfrmPrincipal.FormDestroy(Sender: TObject);
@@ -560,6 +566,49 @@ begin
   //    AddProduto('prod', 'testetestetestetestetestetestetestetesteteste',' 99,99', nil);
   end;
   lvwMenu.Height := vsbMenu.Height + 700;
+end;
+
+function TfrmPrincipal.DescricaoCategoria(AValue: String): String;
+var
+  DescCategoria: String;
+begin
+  DescCategoria := EmptyStr;
+  if AValue = 'catPrato' then
+    DescCategoria := 'Pratos';
+  if AValue = 'catBurguer' then
+    DescCategoria := 'Lanches';
+  if AValue = 'catPizza' then
+    DescCategoria := 'Pizzas';
+  if AValue = 'catFrutosDoMar' then
+    DescCategoria := 'Frutos do Mar';
+  if AValue = 'catEntrada' then
+    DescCategoria := 'Entradas';
+  if AValue = 'catBebida' then
+    DescCategoria := 'Bebidas';
+  if AValue = 'catDrink' then
+    DescCategoria := 'Drinks';
+  if AValue = 'catCafe' then
+    DescCategoria := 'Cafés';
+  if AValue = 'catChocolate' then
+    DescCategoria := 'Chocolates';
+  if AValue = 'catSopa' then
+    DescCategoria := 'Sopas';
+  if AValue = 'catTaco' then
+    DescCategoria := 'Tacos';
+  if AValue = 'catEspeto' then
+    DescCategoria := 'Espetos';
+  if AValue = 'catFrango' then
+    DescCategoria := 'Frangos';
+  if AValue = 'catMacarrao' then
+    DescCategoria := 'Macarrão';
+  if AValue = 'catPadaria' then
+    DescCategoria := 'Lanches';
+  if AValue = 'catPanqueca' then
+    DescCategoria := 'Panquecas';
+  if DescCategoria = EmptyStr then
+    DescCategoria := 'Pratos';
+
+  Result := DescCategoria;
 end;
 
 procedure TfrmPrincipal.MontarPedido;

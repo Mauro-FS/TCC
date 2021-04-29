@@ -46,6 +46,7 @@ type
     property Categoria: String read GetCategoria write SetCategoria;
   public
     function VlrTotal: Double;
+    function GetDescCategoria: String;
   end;
 
 implementation
@@ -82,6 +83,45 @@ end;
 function TProduto.GetCategoria: String;
 begin
   Result := FCategoria;
+end;
+
+function TProduto.GetDescCategoria: String;
+var
+  DescCategoria: String;
+begin
+  if FCategoria = 'catPrato' then
+   DescCategoria := 'Pratos';
+  if FCategoria = 'catBurguer' then
+   DescCategoria := 'Lanches';
+  if FCategoria = 'catPizza' then
+   DescCategoria := 'Pizzas';
+  if FCategoria = 'catFrutosDoMar' then
+   DescCategoria := 'Frutos do Mar';
+  if FCategoria = 'catEntrada' then
+   DescCategoria := 'Entradas';
+  if FCategoria = 'catBebida' then
+   DescCategoria := 'Bebidas';
+  if FCategoria = 'catDrink' then
+   DescCategoria := 'Drinks';
+  if FCategoria = 'catCafe' then
+   DescCategoria := 'Cafés';
+  if FCategoria = 'catChocolate' then
+   DescCategoria := 'Chocolates';
+  if FCategoria = 'catSopa' then
+   DescCategoria := 'Sopas';
+  if FCategoria = 'catTaco' then
+   DescCategoria := 'Tacos';
+  if FCategoria = 'catEspeto' then
+   DescCategoria := 'Espetos';
+  if FCategoria = 'catFrango' then
+   DescCategoria := 'Frangos';
+  if FCategoria = 'catMacarrao' then
+   DescCategoria := 'Macarrão';
+  if FCategoria = 'catPadaria' then
+   DescCategoria := 'Lanches';
+  if FCategoria = 'catPanqueca' then
+   DescCategoria := 'Panquecas';
+  Result := DescCategoria;
 end;
 
 function TProduto.GetDescricao: String;

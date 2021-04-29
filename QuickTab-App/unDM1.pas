@@ -25,6 +25,7 @@ type
     RequestObterEmpresa: TRESTRequest;
     RequestSolicitarAtendente: TRESTRequest;
     FDGUIxWaitCursor1: TFDGUIxWaitCursor;
+    procedure connBeforeConnect(Sender: TObject);
   private
     { Private declarations }
   public
@@ -588,13 +589,25 @@ end;
 function TDM1.ConectarBanco: Boolean;
 begin
   try
-    DM1.conn.Params.Values['DriverID'] := 'SQLite';
-    DM1.conn.Params.Values['Database'] := TDirectory.GetParent(GetCurrentDir) + PathDelim +  'db\banco.db';
-    DM1.conn.Params.Values['User_Name'] := '';
-    DM1.conn.Params.Values['Password'] := '';
-    DM1.conn.Connected := true;
+    conn.Params.Values['DriverID'] := 'SQLite';
+    conn.Params.Values['Database'] := TDirectory.GetParent(GetCurrentDir) + PathDelim +  'db\banco.db';
+    conn.Params.Values['User_Name'] := '';
+    conn.Params.Values['Password'] := '';
+    conn.Connected := True;
   except
   end;
+end;
+
+procedure TDM1.connBeforeConnect(Sender: TObject);
+var
+  dbPath: string;
+begin
+{$IF DEFINED(iOS) or DEFINED(ANDROID)}
+  dbPath := TPath.Combine(TPath.GetDocumentsPath, 'banco.db');
+{$ELSE}
+  dbPath := TDirectory.GetParent(GetCurrentDir) + PathDelim +  'db\banco.db';
+{$ENDIF}
+  conn.Params.Values['Database'] := dbPath;
 end;
 
 function TDM1.CriarPedido(out Erro: String; out NroPedido: String): Boolean;

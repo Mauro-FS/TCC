@@ -5,10 +5,9 @@ object DM1: TDM1
   object conn: TFDConnection
     Params.Strings = (
       'Database=D:\Delphi\TCC\QuickTab-App\db\banco.db'
-      'OpenMode=ReadWrite'
-      'LockingMode=Normal'
       'DriverID=SQLite')
     LoginPrompt = False
+    BeforeConnect = connBeforeConnect
     Left = 24
     Top = 16
   end

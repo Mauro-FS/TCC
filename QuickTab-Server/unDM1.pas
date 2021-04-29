@@ -54,6 +54,11 @@ type
     function BuscarConfiguracoes(var Qry: TFDQuery): Boolean;
     function ChecarInfoServidor: Boolean;
     function BuscarInfoServidor(var Qry: TFDQuery): Boolean;
+    function CarregarCategorias(var Qry: TFDQuery): Boolean;
+    function BuscarCategoria(SeqCategoria: String): String;
+    function DescricaoCategoria(NomeCategoria: String): String;
+    function BuscarSeqCategoria(NomeCategoria: String): Integer;
+
     function AdicionarProduto(Nome, Categoria, Preco, Descricao: String; Imagem: TImage = nil): Boolean;
     function AlterarProduto(Seqproduto, Nome, Categoria, Preco, Descricao: String; Imagem: TImage = nil): Boolean;
     function AtivarProduto(Seqproduto: String): Boolean;
@@ -74,7 +79,7 @@ var
 implementation
 
 uses
-  unPrincipal;
+  unPrincipal, System.IOUtils;
 {%CLASSGROUP 'FMX.Controls.TControl'}
 
 {$R *.dfm}
@@ -87,17 +92,20 @@ var
 begin
   Result := False;
   Stream := TMemoryStream.Create;
-  if not (Imagem.Bitmap.IsEmpty) then
-    Imagem.Bitmap.SaveToStream(Stream);
+  if Imagem.Bitmap.IsEmpty then
+    Imagem.Bitmap.LoadFromFile(TDirectory.GetParent(GetCurrentDir) + PathDelim +  'resources\imagens\Produto.png' );
+
+  Imagem.Bitmap.SaveToStream(Stream);
   try
     Qry := TFDQuery.Create(nil);
     Qry.Connection := DM1.conn;
     Qry.SQL.Clear;
+
     Qry.SQL.Add('insert into tb_produto(nome, descricao, categoria, preco, status, imagem) ');
     Qry.SQL.Add('values(:nome, :descricao, :categoria, :preco, ''A'', :imagem )');
     Qry.ParamByName('nome').Value := Nome;
     Qry.ParamByName('descricao').Value := Descricao;
-    Qry.ParamByName('categoria').Value := Categoria;
+    Qry.ParamByName('categoria').Value := BuscarCategoria(Categoria);
     Qry.ParamByName('preco').Value := Preco.ToDouble;
     if not (Imagem.Bitmap.IsEmpty) then
       Qry.ParamByName('imagem').AsStream := Stream
@@ -119,8 +127,9 @@ var
 begin
   Result := False;
   Stream := TMemoryStream.Create;
-  if not (Imagem.Bitmap.IsEmpty) then
-    Imagem.Bitmap.SaveToStream(Stream);
+  if Imagem.Bitmap.IsEmpty then
+    Imagem.Bitmap.LoadFromFile(TDirectory.GetParent(GetCurrentDir) + PathDelim +  'resources\imagens\Produto.png' );
+  Imagem.Bitmap.SaveToStream(Stream);
   try
     Qry := TFDQuery.Create(nil);
     Qry.Connection := DM1.conn;
@@ -130,7 +139,7 @@ begin
     Qry.SQL.Add('where seqproduto = :seqproduto ');
     Qry.ParamByName('nome').Value := Nome;
     Qry.ParamByName('descricao').Value := Descricao;
-    Qry.ParamByName('categoria').Value := Categoria;
+    Qry.ParamByName('categoria').Value := BuscarCategoria(Categoria);
     Qry.ParamByName('preco').Value := Preco.ToDouble;
     Qry.ParamByName('seqproduto').Value := SeqProduto.ToInteger;
     if not (Imagem.Bitmap.IsEmpty) then
@@ -232,6 +241,30 @@ begin
   end;
 end;
 
+function TDM1.BuscarCategoria(SeqCategoria: String): String;
+var
+  Qry: TFDQuery;
+begin
+  try
+    try
+      Result := 'catPrato';
+      Qry := TFDQuery.Create(nil);
+      Qry.Connection := DM1.conn;
+      Qry.Active := False;
+      Qry.SQL.Clear;
+      Qry.SQL.Add('select * from tb_categoria where seqcategoria = :seqcategoria ');
+      Qry.ParamByName('seqcategoria').Value := SeqCategoria;
+      Qry.Active := True;
+    finally
+      if Qry.RecordCount > 0 then
+        Result := Qry.FieldByName('nome').AsString;
+      Qry.DisposeOf;
+    end;
+  except
+    Result := 'catPrato';
+  end;
+end;
+
 function TDM1.BuscarConfiguracoes(var Qry: TFDQuery): Boolean;
 begin
   try
@@ -295,6 +328,30 @@ begin
   end;
 end;
 
+function TDM1.BuscarSeqCategoria(NomeCategoria: String): Integer;
+var
+  Qry: TFDQuery;
+begin
+  try
+    try
+      Result := 1;
+      Qry := TFDQuery.Create(nil);
+      Qry.Connection := DM1.conn;
+      Qry.Active := False;
+      Qry.SQL.Clear;
+      Qry.SQL.Add('select * from tb_categoria where nome = :nome ');
+      Qry.ParamByName('nome').Value := NomeCategoria;
+      Qry.Active := True;
+    finally
+      if Qry.RecordCount > 0 then
+        Result := Qry.FieldByName('seqcategoria').AsInteger;
+      Qry.DisposeOf;
+    end;
+  except
+    Result := 1;
+  end;
+end;
+
 function TDM1.DesativarProduto(Seqproduto: String): Boolean;
 var
   Qry : TFDQuery;
@@ -311,6 +368,30 @@ begin
   finally
     Result := True;
     Qry.DisposeOf;
+  end;
+end;
+
+function TDM1.DescricaoCategoria(NomeCategoria: String): String;
+var
+  Qry: TFDQuery;
+begin
+  try
+    try
+      Result := 'Pratos';
+      Qry := TFDQuery.Create(nil);
+      Qry.Connection := DM1.conn;
+      Qry.Active := False;
+      Qry.SQL.Clear;
+      Qry.SQL.Add('select * from tb_categoria where nome = :nome ');
+      Qry.ParamByName('nome').Value := NomeCategoria;
+      Qry.Active := True;
+    finally
+      if Qry.RecordCount > 0 then
+        Result := Qry.FieldByName('descricao').AsString;
+      Qry.DisposeOf;
+    end;
+  except
+    Result := 'Pratos';
   end;
 end;
 
@@ -793,6 +874,28 @@ begin
     end;
   finally
     Json.DisposeOf;
+  end;
+end;
+
+function TDM1.CarregarCategorias(var Qry: TFDQuery): Boolean;
+begin
+  try
+    try
+      Result := False;
+      if Qry = nil then
+        Qry := TFDQuery.Create(nil);
+      Qry.Connection := DM1.conn;
+
+      Qry.Active := False;
+      Qry.SQL.Clear;
+      Qry.SQL.Add('select * from tb_categoria');
+      Qry.Active := True;
+    finally
+      if Qry.RecordCount > 0 then
+        Result := True;
+    end;
+  except
+    Result := False;
   end;
 end;
 

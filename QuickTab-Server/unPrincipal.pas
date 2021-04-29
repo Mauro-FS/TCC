@@ -11,7 +11,8 @@ uses
   System.Generics.Collections, FMXDelphiZXingQRCode, Winsock, System.UIConsts,
   System.Threading, FMX.Memo, FMX.Edit, FMX.ListView.Types,
   FMX.ListView.Appearances, FMX.ListView.Adapters.Base, FMX.ListView, FMX.Ani,
-  Data.DB, unMensagem, unUtils, FMX.Effects, System.DateUtils, System.IOUtils;
+  Data.DB, unMensagem, unUtils, FMX.Effects, System.DateUtils, System.IOUtils,
+  FMX.ComboEdit, FMX.ListBox;
 
 type
   TfrmPrincipal = class(TForm)
@@ -54,7 +55,6 @@ type
     Layout9: TLayout;
     lblIDProduto: TLabel;
     edtProduto: TEdit;
-    edtCategoria: TEdit;
     lblCategoriaProduto: TLabel;
     lblDescricao: TLabel;
     lblPrecoProduto: TLabel;
@@ -146,6 +146,7 @@ type
     recImprimirPedido: TRectangle;
     lblImprimirPedido: TLabel;
     Rectangle3: TRectangle;
+    cmbCategoria: TComboBox;
     procedure SwitchSwitch(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ConectarBanco;
@@ -158,10 +159,10 @@ type
     procedure Rectangle5Click(Sender: TObject);
     procedure recAcessarClick(Sender: TObject);
     procedure recAdicionarProdutoClick(Sender: TObject);
+    procedure recAlterarProdutoClick(Sender: TObject);
     procedure lblImagemProdutoClick(Sender: TObject);
     procedure lvwProdutosItemClick(const Sender: TObject;
       const AItem: TListViewItem);
-    procedure recAlterarProdutoClick(Sender: TObject);
     procedure recAtivarProdutoClick(Sender: TObject);
     procedure recDesativarProdutoClick(Sender: TObject);
     procedure recSairClick(Sender: TObject);
@@ -192,6 +193,7 @@ type
   public
     procedure CriarMesas;
     function CriarAbaMesa: String;
+    function CriarCategorias: Boolean;
     procedure SelecionarMesa(Mesa: Integer);
     procedure LimparCampos;
     procedure SetInfoServidor;
@@ -441,6 +443,27 @@ begin
   Result := tabControlMesa.TabCount.ToString;
 end;
 
+function TfrmPrincipal.CriarCategorias: Boolean;
+var
+  Qry: TFDQuery;
+begin
+  cmbCategoria.Items.Clear;
+  Qry := TFDQuery.Create(nil);
+  if DM1.CarregarCategorias(Qry) then
+  begin
+    Qry.First;
+    while not Qry.Eof do
+    begin
+      cmbCategoria.Items.Add(Qry.FieldByName('descricao').Value);
+      Qry.Next;
+    end;
+  end
+  else
+    cmbCategoria.Items.Add('Pratos');
+  cmbCategoria.ItemIndex := 0;
+  Qry.DisposeOf;
+end;
+
 procedure TfrmPrincipal.CriarMesas;
 var
   LMesas : TFDQuery;
@@ -534,7 +557,9 @@ begin
 
   ConectarBanco;
   CriarMesas;
+  CriarCategorias;
   GetPedidos;
+
 end;
 
 function TfrmPrincipal.GetIPLocal: String;
@@ -593,7 +618,7 @@ begin
             Texto := TListItemText(Objects.FindDrawable('Text2'));
             Texto.Text := Qry.FieldByName('nome').AsString;
             Texto := TListItemText(Objects.FindDrawable('Text3'));
-            Texto.Text := Qry.FieldByName('categoria').AsString;
+            Texto.Text := DescricaoCategoria(Qry.FieldByName('categoria').AsString);
             Texto := TListItemText(Objects.FindDrawable('Text4'));
             Texto.Text :='R$' + FormatFloat('0.00', Qry.FieldByName('preco').AsFloat);
             Texto := TListItemText(Objects.FindDrawable('Text5'));
@@ -677,7 +702,7 @@ begin
   lvwProdutos.Selected := nil;
   edtProduto.Text := EmptyStr;
   edtNomeProduto.Text := EmptyStr;
-  edtCategoria.Text := EmptyStr;
+  cmbCategoria.ItemIndex := -1;
   edtPreco.Text := EmptyStr;
   memoDescricao.Text := EmptyStr;
   imgProduto.Bitmap := nil;
@@ -714,7 +739,7 @@ begin
         begin
           edtProduto.Text := Qry.FieldByName('seqproduto').AsString;
           edtNomeProduto.Text := Qry.FieldByName('nome').AsString;
-          edtCategoria.Text := Qry.FieldByName('categoria').AsString;
+          cmbCategoria.ItemIndex := BuscarSeqCategoria(Qry.FieldByName('categoria').Value)- 1;
           edtPreco.Text := FormatFloat('0.00', Qry.FieldByName('preco').AsFloat);
           memoDescricao.Text := Qry.FieldByName('descricao').AsString;
           if not (Qry.FieldByName('imagem').AsString = '') then
@@ -847,7 +872,7 @@ begin
       with DM1 do
       begin
         if ModalResult = mrOK then
-          if AdicionarProduto(edtNomeProduto.Text.Trim, edtCategoria.Text.Trim,
+          if AdicionarProduto(edtNomeProduto.Text.Trim, IntToStr((cmbCategoria.ItemIndex + 1)),
            edtPreco.Text.Trim, memoDescricao.Text.Trim, imgProduto) then
           begin
             lvwProdutos.Items.Clear;
@@ -872,7 +897,7 @@ begin
       with DM1 do
       begin
         if ModalResult = mrOK then
-          if AlterarProduto(edtProduto.Text.Trim, edtNomeProduto.Text.Trim, edtCategoria.Text.Trim,
+          if AlterarProduto(edtProduto.Text.Trim, edtNomeProduto.Text.Trim, IntToStr((cmbCategoria.ItemIndex + 1)),
            edtPreco.Text.Trim, memoDescricao.Text.Trim, imgProduto) then
           begin
             lvwProdutos.Items.Clear;
