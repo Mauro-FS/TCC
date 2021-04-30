@@ -47,14 +47,16 @@ begin
     lblMensagem.Text := Mensagem;
     recMensagem.Visible := True;
     FloatAnimar.Enabled := True;
+    FloatAnimar.Start;
   end;
-  Visible := True;
+  Self.Visible := True;
   BringToFront;
 end;
 
 function TframeFundo.Fechar: Boolean;
 begin
   Visible := False;
+  FloatAnimar.Stop;
   lblMensagem.Text := EmptyStr;
   FloatAnimar.Enabled := False;
   recMensagem.Visible := False;

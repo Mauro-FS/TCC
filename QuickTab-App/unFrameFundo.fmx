@@ -39,6 +39,7 @@ object frameFundo: TframeFundo
         object FloatAnimar: TFloatAnimation
           Duration = 0.699999988079071000
           Loop = True
+          PropertyName = 'RotationAngle'
           StartValue = 0.000000000000000000
           StopValue = 360.000000000000000000
         end

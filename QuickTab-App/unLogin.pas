@@ -152,6 +152,7 @@ var
   Qry: TFDQuery;
 begin
   Qry := TFDQuery.Create(nil);
+  FLoading.Fechar;
   LTask := TTask.Create(procedure
   begin
     BarColor(False, $FFFFFFFF);

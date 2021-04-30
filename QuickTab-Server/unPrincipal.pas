@@ -176,10 +176,10 @@ type
     procedure lvwPedidosRecebidosItemClick(const Sender: TObject;
       const AItem: TListViewItem);
     procedure Timer1Timer(Sender: TObject);
-    procedure Label22Click(Sender: TObject);
     procedure recConfirmarPedidoClick(Sender: TObject);
     procedure recCancelarPedidoClick(Sender: TObject);
     procedure recFinalizarPedidoClick(Sender: TObject);
+    procedure recImprimirPedidoClick(Sender: TObject);
   private
     FIPLocal: String;
     FframeMesas: TObjectList<TframeMesa>;
@@ -187,6 +187,7 @@ type
     FProdutoSelecionado: TListViewItem;
     FAnimacao: TFloatAnimation;
     Dlg: TfrmMensagem;
+    FPedidoSelecionado: Integer;
     procedure QRCodeWin(imgQRCode: TImage; texto: string);
     procedure AnimarClick(Objeto: TObject);
     procedure FinalizaAnimacao(Sender: TObject);
@@ -644,11 +645,6 @@ begin
   end;
 end;
 
-procedure TfrmPrincipal.Label22Click(Sender: TObject);
-begin
-  AdicionarPedido('1', 'teste', 'aaaaaaa' );
-end;
-
 procedure TfrmPrincipal.lblConfigEstabelecimentoClick(Sender: TObject);
 begin
   if VerificaAbas then
@@ -877,6 +873,7 @@ begin
           begin
             lvwProdutos.Items.Clear;
             GetProdutos;
+            LimparCampos;
           end;
       end;
     end);
@@ -902,6 +899,7 @@ begin
           begin
             lvwProdutos.Items.Clear;
             GetProdutos;
+            LimparCampos;
           end;
       end;
     end);
@@ -947,34 +945,37 @@ end;
 procedure TfrmPrincipal.recCancelarPedidoClick(Sender: TObject);
 begin
   AnimarClick(Sender);
-
-  if lvwPedidosRecebidos.Selected.TagString = 'F' then
+  if not (lvwPedidosRecebidos.Selected = nil) then
   begin
-    Dlg.Mensagem('Não é possível cancelar pois o pedido já foi finalizado!');
-    Exit;
-  end;
-
-  Dlg.Confirmar('Deseja cancelar o pedido?');
-  Dlg.Position := TFormPosition.OwnerFormCenter;
-  Dlg.ShowModal(
-  procedure(ModalResult: TModalResult)
-  begin
-    if Dlg.ModalResult = mrOk then
-    with DM1 do
+    if lvwPedidosRecebidos.Selected.TagString = 'F' then
     begin
-      if ModalResult = mrOK then
-        if AlterarStatusPedido('C', lvwPedidosRecebidos.Selected.Tag) then
-        begin
-          lvwPedidosRecebidos.Items.Clear;
-          GetPedidos;
-        end;
+      Dlg.Mensagem('Não é possível cancelar pois o pedido já foi finalizado!');
+      Exit;
     end;
-  end);
-  Dlg.Close;
+
+    Dlg.Confirmar('Deseja cancelar o pedido?');
+    Dlg.Position := TFormPosition.OwnerFormCenter;
+    Dlg.ShowModal(
+    procedure(ModalResult: TModalResult)
+    begin
+      if Dlg.ModalResult = mrOk then
+      with DM1 do
+      begin
+        if ModalResult = mrOK then
+          if AlterarStatusPedido('C', lvwPedidosRecebidos.Selected.Tag) then
+          begin
+            lvwPedidosRecebidos.Items.Clear;
+            GetPedidos;
+          end;
+      end;
+    end);
+    Dlg.Close;
+  end;
 end;
 
 procedure TfrmPrincipal.recConfirmarPedidoClick(Sender: TObject);
 begin
+  
   AnimarClick(Sender);
   // checar o selected antes de realizar a rotina
   if not (lvwPedidosRecebidos.Selected = nil) then
@@ -1047,30 +1048,32 @@ end;
 procedure TfrmPrincipal.recFinalizarPedidoClick(Sender: TObject);
 begin
   AnimarClick(Sender);
-
-  if lvwPedidosRecebidos.Selected.TagString = 'C' then
+  if not (lvwPedidosRecebidos.Selected = nil) then
   begin
-    Dlg.Mensagem('Não é possível finalizar o pedido pois ele já foi cancelado!');
-    Exit;
-  end;
-
-  Dlg.Confirmar('Deseja confirmar o pedido?');
-  Dlg.Position := TFormPosition.OwnerFormCenter;
-  Dlg.ShowModal(
-  procedure(ModalResult: TModalResult)
-  begin
-    if Dlg.ModalResult = mrOk then
-    with DM1 do
+    if lvwPedidosRecebidos.Selected.TagString = 'C' then
     begin
-      if ModalResult = mrOK then
-        if AlterarStatusPedido('F', lvwPedidosRecebidos.Selected.Tag) then
-        begin
-          lvwPedidosRecebidos.Items.Clear;
-          GetPedidos;
-        end;
+      Dlg.Mensagem('Não é possível finalizar o pedido pois ele já foi cancelado!');
+      Exit;
     end;
-  end);
-  Dlg.Close;
+
+    Dlg.Confirmar('Deseja confirmar o pedido?');
+    Dlg.Position := TFormPosition.OwnerFormCenter;
+    Dlg.ShowModal(
+    procedure(ModalResult: TModalResult)
+    begin
+      if Dlg.ModalResult = mrOk then
+      with DM1 do
+      begin
+        if ModalResult = mrOK then
+          if AlterarStatusPedido('F', lvwPedidosRecebidos.Selected.Tag) then
+          begin
+            lvwPedidosRecebidos.Items.Clear;
+            GetPedidos;
+          end;
+      end;
+    end);
+    Dlg.Close;
+  end;
 end;
 
 procedure TfrmPrincipal.recGerarQRCodeMesaClick(Sender: TObject);
@@ -1102,6 +1105,29 @@ begin
   finally
     Qry.DisposeOf;
   end;
+end;
+
+procedure TfrmPrincipal.recImprimirPedidoClick(Sender: TObject);
+var
+  SrcRect, DestRect: TRectF;
+begin
+  AnimarClick(Sender);  
+  TThread.CreateAnonymousThread( procedure
+  begin
+    Printer.ActivePrinter.SelectDPI(600, 600);
+
+    Printer.Canvas.Fill.Color := claBlack;
+    Printer.Canvas.Fill.Kind := TBrushKind.Solid;
+
+    Printer.BeginDoc;
+
+    SrcRect := imgQRCodeMesa.LocalRect;
+    DestRect := TRectF.Create(0, 0, Printer.PageWidth * 6, Printer.PageHeight * 4);
+    
+    Printer.Canvas.DrawBitmap(imgQRCodeMesa.Bitmap, SrcRect, DestRect, 1);
+    
+    Printer.EndDoc;
+  end).Start;
 end;
 
 procedure TfrmPrincipal.recSairClick(Sender: TObject);

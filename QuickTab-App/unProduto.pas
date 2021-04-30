@@ -35,7 +35,7 @@ type
     procedure SetObservacao(AValue: String);
   published
     constructor Create;
-    destructor Destroy;
+    destructor Destroy; override;
     property IDProduto: Integer read GetIdProduto write SetIdProduto;
     property Quantidade: Integer read GetQuantidade write SetQuantidade;
     property Observacao: String read GetObservacao write SetObservacao;
@@ -62,22 +62,25 @@ begin
   Descricao := EmptyStr;
   Preco := 0;
   FIDProduto := IDProduto;
+  Imagem := TMemoryStream.Create;
+end;
+
+
+
+function TProduto.GetImagem: TMemoryStream;
+begin
+  Result := FImagem;
 end;
 
 destructor TProduto.Destroy;
 begin
   IDProduto := 0;
   Quantidade := 0;
-  Imagem.Free;
+  Imagem.Clear;
   Nome := EmptyStr;
   Descricao := EmptyStr;
   Preco := 0;
-  inherited;
-end;
 
-function TProduto.GetImagem: TMemoryStream;
-begin
-  Result := FImagem;
 end;
 
 function TProduto.GetCategoria: String;

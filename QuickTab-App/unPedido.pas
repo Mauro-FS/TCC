@@ -44,7 +44,7 @@ type
     procedure SetListaProdutos(Avalue: TObjectList<TProduto>);
   public
     constructor Create;
-    destructor Destroy;
+    destructor Destroy; override;
     property IDPedido: Integer read GetIDPedido write SetIDPedido;
     property IDEmpresa: Integer read GetIDEmpresa write SetIDEmpresa;
     property IDUsuario: Integer read GetIdUsuario write SetIdUsuario;
@@ -112,7 +112,7 @@ begin
   Status := EmptyStr;
   NomeUsuario := EmptyStr;
   VlrTotal := 0;
-  FListaProdutos := TObjectList<TProduto>.Create;
+  FListaProdutos := TObjectList<TProduto>.Create(True);
   FListaProdutos.Clear;
 
   FIDPedido := IDPedido;
@@ -144,6 +144,7 @@ begin
   NomeUsuario := EmptyStr;
   VlrTotal := 0;
   FListaProdutos.Clear;
+  FreeAndNil(FListaProdutos);
 end;
 
 function TPedido.GetData: TDateTime;

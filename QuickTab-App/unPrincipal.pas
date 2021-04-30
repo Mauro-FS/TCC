@@ -30,7 +30,6 @@ type
     tabControlPrincipal: TTabControl;
     tabMenu: TTabItem;
     ScrollCategorias: THorzScrollBox;
-    Button1: TButton;
     lvwMenu: TListView;
     vsbMenu: TVertScrollBox;
     StyleBook1: TStyleBook;
@@ -90,8 +89,6 @@ type
     procedure imgQrCodeClick(Sender: TObject);
     procedure recEnviarPedidoClick(Sender: TObject);
   private
-    Dlg: TfrmMensagem;
-    FLoading: TframeFundo;
     FframeCategoriasProdutos: TObjectList<TframeCategoria>;
     FframeItensMenu: TObjectList<TframeItemMenu>;
     FframeProdutosPedido: TObjectList<TframeItemPedido>;
@@ -101,6 +98,8 @@ type
     procedure MontarPedido;
     procedure CategoriaClick(Sender: TObject);
   public
+    Dlg: TfrmMensagem;
+    FLoading: TframeFundo;
     procedure CriarItemCardapio;
     procedure CriarCategorias;
     function RemoverItemPedido(Index: integer): Boolean;
@@ -239,28 +238,29 @@ procedure TfrmPrincipal.Button1Click(Sender: TObject);
 var
   I: Integer;
 begin
-  lvwMenu.Visible := False;
-    CriarCategorias;
-  for I := 0 to 10 do
-  begin
+//  lvwMenu.Visible := False;
+//    CriarCategorias;
+//  for I := 0 to 10 do
+//  begin
+//
+//
+//    FframeItensMenu.Add(TframeItemMenu.Create(vsbMenu));
+//    FframeItensMenu.Items[I].Name := FframeItensMenu.Items[I].Name + I.ToString;
+//    FframeItensMenu.Items[I].Align := TAlignLayout.None;
+//    FframeItensMenu.Items[I].Position.Y := 2000 + I;
+//    FframeItensMenu.Items[I].Align := TAlignLayout.Top;
+//    if I < 4 then
+//      FframeItensMenu.Items[I].TagString := 'CAT0'
+//    else if (I > 3 ) and (I < 8) then
+//      FframeItensMenu.Items[I].TagString := 'CAT1'
+//    else
+//      FframeItensMenu.Items[I].TagString := 'CAT2';
+//    vsbMenu.AddObject(FframeItensMenu.Items[I]);
+//
+////    AddProduto('prod', 'testetestetestetestetestetestetestetesteteste',' 99,99', nil);
+//  end;
+//  lvwMenu.Height := vsbMenu.Height + 700;
 
-
-    FframeItensMenu.Add(TframeItemMenu.Create(vsbMenu));
-    FframeItensMenu.Items[I].Name := FframeItensMenu.Items[I].Name + I.ToString;
-    FframeItensMenu.Items[I].Align := TAlignLayout.None;
-    FframeItensMenu.Items[I].Position.Y := 2000 + I;
-    FframeItensMenu.Items[I].Align := TAlignLayout.Top;
-    if I < 4 then
-      FframeItensMenu.Items[I].TagString := 'CAT0'
-    else if (I > 3 ) and (I < 8) then
-      FframeItensMenu.Items[I].TagString := 'CAT1'
-    else
-      FframeItensMenu.Items[I].TagString := 'CAT2';
-    vsbMenu.AddObject(FframeItensMenu.Items[I]);
-
-//    AddProduto('prod', 'testetestetestetestetestetestetestetesteteste',' 99,99', nil);
-  end;
-  lvwMenu.Height := vsbMenu.Height + 700;
 end;
 
 procedure TfrmPrincipal.CategoriaClick(Sender: TObject);
@@ -318,6 +318,7 @@ var
 begin
   Dlg := TfrmMensagem.Create(frmPrincipal);
   FLoading := TframeFundo.Create(Self);
+  FLoading.Parent := Self;
   AddItensPerfil('Meus Dados', 'Minhas informações pessoais');
   AddItensPerfil('Histórico', 'Estabelecimentos já visitados');
   AddItensPerfil('Onboarding', 'Como usar o app');

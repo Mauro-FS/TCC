@@ -218,10 +218,6 @@ begin
           if(ReadResult <> nil)  then
           begin
             Venda.BuscarCardapio(ReadResult.text);
-//            if TPlatformServices.Current.SupportsPlatformService(IFMXDialogServiceAsync, IInterface (ASyncService)) then
-//            begin
-//              ASyncService.ShowMessageAsync(ReadResult.text);
-//            end;
           end;
 
           if (scanBitmap <> nil) then

@@ -21,7 +21,7 @@ type
     procedure SetProdutosCardapio(Avalue: TObjectList<TProduto>);
   public
     constructor Create;
-    destructor Destroy;
+    destructor Destroy; override;
     property Mesa: String read FMesa write FMesa;
     property Pedido: TPedido read GetPedido write SetPedido;
     property ProdutosCardapio: TObjectList<TProduto> read GetProdutosCardapio write SetProdutosCardapio;
@@ -34,6 +34,7 @@ type
     function GetCategorias(out ListaCategorias: TStringList): Boolean;
     function BuscarCardapio(QRCode: String): Boolean;
     function CriarCardapio(Cardapio: TJSONArray): Boolean;
+    function ApagarCardapioAtual: Boolean;
   end;
 
 var Venda: TVenda;
@@ -41,7 +42,7 @@ var Venda: TVenda;
 implementation
 
 uses
-  unPrincipal;
+  unPrincipal, System.UITypes;
 
 { TVenda }
 function TVenda.Acessar(out Erro: String; Email, Senha: String; Lembrar: Boolean): Boolean;
@@ -102,6 +103,16 @@ begin
   Result := True;
 end;
 
+function TVenda.ApagarCardapioAtual: Boolean;
+var
+  I: Integer;
+begin
+  for I := ProdutosCardapio.Count - 1 downto 0 do
+  begin
+    ProdutosCardapio.Items[I].Imagem.Clear;
+  end;
+end;
+
 function TVenda.BuscarCardapio(QRCode: String): Boolean;
 var
   BaseUrl: String;
@@ -110,37 +121,67 @@ var
   JSONArray: TJSONArray;
   Erro: string;
 begin
-  QRCode := stringreplace(QrCode, '|', '',    [rfReplaceAll, rfIgnoreCase]);
-  BaseUrl := Copy(QRCode, 1, QRCode.Length - 3);
-  FMesa := Copy(QRCode, BaseUrl.Length + 1, QRCode.Length);
-  with DM1 do
+
+  frmPrincipal.FLoading.Exibir('Buscando cardápio');
+  TThread.CreateAnonymousThread(procedure
   begin
-    RESTClient.BaseURL := BaseUrl;
-    if not ObterEmpresa(Mensagem) then
-    begin
-      {$IFDEF ANDROID}
-      if TPlatformServices.Current.SupportsPlatformService(IFMXDialogServiceAsync, IInterface (ASyncService)) then
+    try
+      QRCode := stringreplace(QrCode, '|', '',    [rfReplaceAll, rfIgnoreCase]);
+      BaseUrl := Copy(QRCode, 1, QRCode.Length - 3);
+      FMesa := Copy(QRCode, BaseUrl.Length + 1, QRCode.Length);
+      with DM1 do
       begin
-        ASyncService.ShowMessageAsync(Mensagem);
+        RESTClient.BaseURL := BaseUrl;
+        if not ObterEmpresa(Mensagem) then
+        begin
+          {$IFDEF ANDROID}
+          if TPlatformServices.Current.SupportsPlatformService(IFMXDialogServiceAsync, IInterface (ASyncService)) then
+          begin
+            ASyncService.ShowMessageAsync(Mensagem);
+          end;
+          {$ELSE}
+          ShowMessage(Mensagem);
+          {$ENDIF}
+          Exit;
+        end;
+
+        if not ListarProduto(JSONArray, Erro) then
+        begin
+          raise Exception.Create('Erro ao listar produto: ' + erro);
+        end;
+
+        TThread.Synchronize(nil,
+        procedure
+        begin
+          if CriarCardapio(JSONArray) then
+          begin
+            frmPrincipal.CriarItemCardapio;
+            frmPrincipal.CriarCategorias;
+            frmPrincipal.FLoading.Fechar;
+          end;
+        end);
       end;
-      {$ELSE}
-      ShowMessage(Mensagem);
-      {$ENDIF}
-      Exit;
-    end;
 
-    if not ListarProduto(JSONArray, Erro) then
-    begin
-      raise Exception.Create('Erro ao listar produto: ' + erro);
-      Exit;
+    except
+    on E: Exception do
+      begin
+        TThread.Synchronize(nil,
+        procedure
+        begin
+          frmPrincipal.FLoading.Fechar;
+          frmPrincipal.FLoading.Exibir;
+          frmPrincipal.Dlg.Mensagem( E.Message);
+          frmPrincipal.Dlg.ShowModal(
+          procedure(ModalResult: TModalResult)
+          begin
+            if frmPrincipal.Dlg.ModalResult = mrOk then
+              frmPrincipal.FLoading.Fechar;
+          end);
+        end);
+      end;
     end;
+  end).Start;
 
-    if CriarCardapio(JSONArray) then
-    begin
-      frmPrincipal.CriarItemCardapio;
-      frmPrincipal.CriarCategorias;
-    end;
-  end;
 end;
 
 function TVenda.BuscarIDUltimoPedido: Integer;
@@ -170,7 +211,7 @@ end;
 constructor TVenda.Create;
 begin  
   FPedido := TPedido.Create;
-  FProdutosCardapio := TObjectList<TProduto>.Create;
+  FProdutosCardapio := TObjectList<TProduto>.Create(True);
   FProdutosCardapio.Clear;
 end;
 
@@ -179,13 +220,13 @@ var
   I: Integer;
   Produto: TProduto;
   StringStream: TStringStream;
-  Stream: TMemoryStream;
 begin
   try
     Result := False;
 
     with DM1 do
     begin
+      ApagarCardapioAtual;
       ApagarCardapio;
       for I := 0 to Cardapio.Size - 1 do
       begin
@@ -209,18 +250,14 @@ begin
 
           StringStream := TStringStream.Create(Cardapio.Items[I].GetValue<String>('imagem'));
           StringStream.Position := 0;
-          Stream := TMemoryStream.Create;
-          TNetEncoding.Base64.Decode(StringStream, Stream);
-          Stream.Position := 0;
 
-          Produto.Imagem := Stream;
+          TNetEncoding.Base64.Decode(StringStream, Produto.Imagem);
+          Produto.Imagem.Position := 0;
+
           ProdutosCardapio.Add(Produto);
+          StringStream.Clear;
           StringStream.Free;
-//          Stream := nil;
-//          FreeAndNil(Stream);
 
-//          Produto := nil;
-//          Produto.DisposeOf;
         end;
       end;
     end;
@@ -232,20 +269,18 @@ end;
 
 destructor TVenda.Destroy;
 begin
-  FProdutosCardapio.Clear;
-  FProdutosCardapio.DisposeOf;
-  if Assigned(FPedido) then
-    FreeAndNil(FPedido);
+  ApagarCardapioAtual;
+  FreeAndNil(FPedido);
 
+  FreeAndNil(FProdutosCardapio);
+  inherited;
 end;
 
 function TVenda.GetCategorias(out ListaCategorias: TStringList): Boolean;
 var
   I: Integer;
-//  ListaCategorias: TStringList;
 begin
   Result := False;
-//  ListaCategorias := TStringList.Create;
   ListaCategorias.Sorted := True;
   ListaCategorias.Duplicates := dupIgnore;
 
@@ -297,7 +332,7 @@ end;
 finalization
 begin
   if Assigned(Venda) then
-    Venda.DisposeOf;
+     FreeAndNil(Venda);
 end;
 
 end.

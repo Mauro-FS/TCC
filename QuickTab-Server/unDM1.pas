@@ -106,7 +106,7 @@ begin
     Qry.ParamByName('nome').Value := Nome;
     Qry.ParamByName('descricao').Value := Descricao;
     Qry.ParamByName('categoria').Value := BuscarCategoria(Categoria);
-    Qry.ParamByName('preco').Value := Preco.ToDouble;
+    Qry.ParamByName('preco').Value := StrToFloatDef(Preco, 0.00);
     if not (Imagem.Bitmap.IsEmpty) then
       Qry.ParamByName('imagem').AsStream := Stream
     else
@@ -140,7 +140,7 @@ begin
     Qry.ParamByName('nome').Value := Nome;
     Qry.ParamByName('descricao').Value := Descricao;
     Qry.ParamByName('categoria').Value := BuscarCategoria(Categoria);
-    Qry.ParamByName('preco').Value := Preco.ToDouble;
+    Qry.ParamByName('preco').Value := StrToFloatDef(Preco, 0.00);
     Qry.ParamByName('seqproduto').Value := SeqProduto.ToInteger;
     if not (Imagem.Bitmap.IsEmpty) then
       Qry.ParamByName('imagem').AsStream := Stream
@@ -731,7 +731,7 @@ begin
 
       Qry.Active := false;
       Qry.SQL.Clear;
-      Qry.SQL.Add('select * from tb_produto order by nome asc');
+      Qry.SQL.Add('select * from tb_produto order by categoria asc');
       Qry.Active := True;
 
       Json.LoadFromDataset('', Qry, False, jmPureJSON);
