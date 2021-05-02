@@ -45,7 +45,10 @@ begin
   if not Assigned(Venda.Pedido) then
     Venda.Pedido := TPedido.Create;
   if Venda.Pedido.AdicionarProduto(Self.Tag) then
+  begin
+    Venda.AtualizarTotalPedido;
     TToast.ToastMessage(frmPrincipal, 'Produto Adicionado');
+  end;
 end;
 
 end.

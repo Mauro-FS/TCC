@@ -85,8 +85,8 @@ begin
     Produto.Categoria := Venda.ProdutosCardapio.Items[Idproduto].Categoria;
     Produto.Imagem := Venda.ProdutosCardapio.Items[Idproduto].Imagem;
     Produto.Quantidade := Quantidade;
-  if Assigned(ListaProdutos) then
-    ListaProdutos.Add(Produto);
+    if Assigned(ListaProdutos) then
+      ListaProdutos.Add(Produto);
     Result := True;
   except
     Result := False;

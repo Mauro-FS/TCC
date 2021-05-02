@@ -80,7 +80,8 @@ begin
   Nome := EmptyStr;
   Descricao := EmptyStr;
   Preco := 0;
-
+  FreeAndNil(FImagem);
+  inherited;
 end;
 
 function TProduto.GetCategoria: String;

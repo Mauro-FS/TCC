@@ -452,16 +452,8 @@
             <Form>frameCategoria</Form>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
-        <DCCReference Include="unFramePromocao.pas">
-            <Form>framePromocao</Form>
-            <DesignClass>TFrame</DesignClass>
-        </DCCReference>
         <DCCReference Include="unProdutoDetalhado.pas">
             <Form>frmProdutoDetalhado</Form>
-        </DCCReference>
-        <DCCReference Include="unFrameAdicional.pas">
-            <Form>frameAdicional</Form>
-            <DesignClass>TFrame</DesignClass>
         </DCCReference>
         <DCCReference Include="unPedido.pas"/>
         <DCCReference Include="unProduto.pas"/>
@@ -578,17 +570,17 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="resources\imagens\catEntrada.png" Configuration="Release" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>.\assets\internal\</RemoteDir>
-                        <RemoteName>catEntrada.png</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="resources\imagens\catPrato.png" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>.\assets\internal\</RemoteDir>
                         <RemoteName>catPrato.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="resources\imagens\catEntrada.png" Configuration="Release" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>.\assets\internal\</RemoteDir>
+                        <RemoteName>catEntrada.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1113,6 +1105,13 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="resources\imagens\catCafe.png" Configuration="Debug" Class="File">
+                    <Platform Name="Android">
+                        <RemoteDir>.\assets\internal\</RemoteDir>
+                        <RemoteName>catCafe.png</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="resources\imagens\catEntrada.png" Configuration="Debug" Class="File">
                     <Platform Name="Android64">
                         <RemoteDir>.\assets\internal\</RemoteDir>
@@ -1129,13 +1128,6 @@
                 </DeployFile>
                 <DeployFile LocalName="Android\Release\AndroidManifest.xml" Configuration="Release" Class="ProjectAndroidManifest">
                     <Platform Name="Android">
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="resources\imagens\catCafe.png" Configuration="Debug" Class="File">
-                    <Platform Name="Android">
-                        <RemoteDir>.\assets\internal\</RemoteDir>
-                        <RemoteName>catCafe.png</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -1220,7 +1212,7 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="Win32\Debug\QuickTab.exe" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="AppExe\QuickTab.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>QuickTab.exe</RemoteName>
                         <Overwrite>true</Overwrite>

@@ -42,7 +42,10 @@ begin
   with Venda do
   begin
     if Pedido.AdicionarProduto(Self.Tag) then
+    begin
+      Venda.AtualizarTotalPedido;
       lblQtdProduto.Text := IntToStr(lblQtdProduto.Text.ToInteger + 1);
+    end;
   end;
 end;
 
@@ -52,6 +55,7 @@ begin
   begin
     if Pedido.DeletarProduto(Self.Tag) then
     begin
+      Venda.AtualizarTotalPedido;
       Self.DisposeOf;
     end;
   end;
@@ -74,6 +78,7 @@ begin
         end;
 
       end;
+      Venda.AtualizarTotalPedido;
     end;
   end;
 end;

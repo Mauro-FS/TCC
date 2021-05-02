@@ -69,7 +69,7 @@ type
     lblFinalizarPedido: TLabel;
     recCancelarPedido: TRectangle;
     lblCancelarPedido: TLabel;
-    procedure Button1Click(Sender: TObject);
+    lblNomeEmpresa: TLabel;
     procedure lvwMenuUpdateObjects(const Sender: TObject;
       const AItem: TListViewItem);
     procedure lvwPerfilUpdateObjects(const Sender: TObject;
@@ -102,6 +102,7 @@ type
     FLoading: TframeFundo;
     procedure CriarItemCardapio;
     procedure CriarCategorias;
+    function ApagarCardapio: Boolean;
     function RemoverItemPedido(Index: integer): Boolean;
     function PedidoFeito: Boolean;
     function ResetarInterface: Boolean;
@@ -234,33 +235,14 @@ begin
 
 end;
 
-procedure TfrmPrincipal.Button1Click(Sender: TObject);
-var
-  I: Integer;
+function TfrmPrincipal.ApagarCardapio: Boolean;
 begin
-//  lvwMenu.Visible := False;
-//    CriarCategorias;
-//  for I := 0 to 10 do
-//  begin
-//
-//
-//    FframeItensMenu.Add(TframeItemMenu.Create(vsbMenu));
-//    FframeItensMenu.Items[I].Name := FframeItensMenu.Items[I].Name + I.ToString;
-//    FframeItensMenu.Items[I].Align := TAlignLayout.None;
-//    FframeItensMenu.Items[I].Position.Y := 2000 + I;
-//    FframeItensMenu.Items[I].Align := TAlignLayout.Top;
-//    if I < 4 then
-//      FframeItensMenu.Items[I].TagString := 'CAT0'
-//    else if (I > 3 ) and (I < 8) then
-//      FframeItensMenu.Items[I].TagString := 'CAT1'
-//    else
-//      FframeItensMenu.Items[I].TagString := 'CAT2';
-//    vsbMenu.AddObject(FframeItensMenu.Items[I]);
-//
-////    AddProduto('prod', 'testetestetestetestetestetestetestetesteteste',' 99,99', nil);
-//  end;
-//  lvwMenu.Height := vsbMenu.Height + 700;
-
+  if Assigned(FframeCategoriasProdutos) then
+    FframeCategoriasProdutos.DisposeOf;
+  if Assigned(FframeItensMenu) then
+    FframeItensMenu.DisposeOf;
+  FframeCategoriasProdutos := TObjectList<TframeCategoria>.Create;
+  FframeItensMenu := TObjectList<TframeItemMenu>.Create;
 end;
 
 procedure TfrmPrincipal.CategoriaClick(Sender: TObject);
@@ -684,6 +666,7 @@ begin
   end;
   PedidoFeito;
   lblNroPedido.Text := 'Nro. Pedido: ' + NroPedido;
+  lblVlrTotPedido.Text := 'R$' + FormatFloat('0.00', Venda.Pedido.GetTotalPedido);
   TabBtnPedido.ActiveTab := TabBtnPedidoFeito;
 end;
 

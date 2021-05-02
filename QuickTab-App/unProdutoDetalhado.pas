@@ -67,7 +67,7 @@ begin
   lblNomeProdDetalhado.Text := Venda.ProdutosCardapio.Items[FIdProduto].Nome;
   lblDescProdDetalhado.Text := Venda.ProdutosCardapio.Items[FIdProduto].Descricao;
   lblQtdProduto.Text := '1';
-  lblVlrTotal.Text := FormatFloat('0,00', Venda.ProdutosCardapio.Items[IdProduto].VlrTotal);
+  lblVlrTotal.Text := 'R$' + FormatFloat('0.00', Venda.ProdutosCardapio.Items[IdProduto].VlrTotal);
   Self.Show;
 end;
 
@@ -81,7 +81,7 @@ begin
   lblQtdProduto.Tag := StrToint(lblQtdProduto.Text.Trim);
   lblQtdProduto.Tag := lblQtdProduto.Tag + 1;
   lblQtdProduto.Text := lblQtdProduto.Tag.ToString;
-  lblVlrTotal.Text := FormatFloat('0,00', Calcular);
+  lblVlrTotal.Text := 'R$' + FormatFloat('0.00', Calcular);
 end;
 
 procedure TfrmProdutoDetalhado.imgRemoveProdutoClick(Sender: TObject);
@@ -92,7 +92,7 @@ begin
     lblQtdProduto.Tag := lblQtdProduto.Tag - 1;
     lblQtdProduto.Text := lblQtdProduto.Tag.ToString;
   end;
-  lblVlrTotal.Text := FormatFloat('0,00', Calcular);
+  lblVlrTotal.Text := 'R$' + FormatFloat('0.00', Calcular);
 end;
 
 procedure TfrmProdutoDetalhado.LimparInfo;
@@ -101,7 +101,7 @@ var
 begin
   lblDescProdDetalhado.Text := EmptyStr;
   imgProdDetalhado.Bitmap := nil;
-  lblVlrTotal.Text := '0,00';
+  lblVlrTotal.Text := 'R$0,00';
   lblVlrTotal.Tag := 0;
   lblVlrTotal.TagFloat := 0;
   lblQtdProduto.Tag := 1;
@@ -115,6 +115,7 @@ begin
     Venda.Pedido := TPedido.Create;
   if Venda.Pedido.AdicionarProduto(FIdProduto, lblQtdProduto.Tag) then
   begin
+    Venda.AtualizarTotalPedido;
     TToast.ToastMessage(frmPrincipal, 'Produto Adicionado');
     Self.Close;
   end;

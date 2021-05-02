@@ -36,7 +36,7 @@ type
     function LembrarUsuario(Lembrar: Boolean): Boolean;
 
     //Empresa
-    function ObterEmpresa(out Erro: String): Boolean;
+    function ObterEmpresa(out Erro: String; out NomeEmpresa: String): Boolean;
     function InserirEmpresa(out JSONObj: TJsonObject): Boolean;
     function AtualizarEmpresa(out JSONObj: TJsonObject): Boolean;
     function BuscarEmpresa(CNPJ: String): Boolean;
@@ -75,7 +75,7 @@ uses
 
 { TDM1 }
 
-function TDM1.ObterEmpresa(out Erro: String): Boolean;
+function TDM1.ObterEmpresa(out Erro: String; out NomeEmpresa: String): Boolean;
 var
   JSON: String;
   JSONObj: TJsonObject;
@@ -96,7 +96,7 @@ begin
 
     if RequestObterEmpresa.Response.StatusCode <> 200 then
     begin
-      Result := false;
+      Result := False;
       Erro := 'Erro ao buscar informações do estabelecimento: ' + RequestObterEmpresa.Response.StatusCode.ToString;
     end
     else
@@ -119,9 +119,10 @@ begin
       end;
     end;
   finally
+    if Result then
+      NomeEmpresa := JSONObj.GetValue('nomeempresa').Value;
     Qry.DisposeOf;
-    JSON := EmptyStr;
-    FreeAndNil(JSONObj);
+    JSONObj.DisposeOf;
   end;
 end;
 
@@ -245,7 +246,7 @@ begin
     Qry := TFDQuery.Create(nil);
     Qry.Connection := DM1.conn;
     Qry.SQL.Clear;
-    Qry.SQL.Add('select * from tb_pedido where not ((status = ''F'') or (status = ''P'')');
+    Qry.SQL.Add('select * from tb_pedido where not ((status = ''F'') or (status = ''P''))');
     Qry.Active := True;
 
     if Qry.RecordCount > 0 then

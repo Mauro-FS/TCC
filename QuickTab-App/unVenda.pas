@@ -35,6 +35,7 @@ type
     function BuscarCardapio(QRCode: String): Boolean;
     function CriarCardapio(Cardapio: TJSONArray): Boolean;
     function ApagarCardapioAtual: Boolean;
+    function AtualizarTotalPedido: Boolean;
   end;
 
 var Venda: TVenda;
@@ -107,10 +108,20 @@ function TVenda.ApagarCardapioAtual: Boolean;
 var
   I: Integer;
 begin
-  for I := ProdutosCardapio.Count - 1 downto 0 do
+  Result := False;
+  if FProdutosCardapio.Count > 0 then
   begin
-    ProdutosCardapio.Items[I].Imagem.Clear;
+    frmPrincipal.ApagarCardapio;
+    FreeAndNil(FProdutosCardapio);
+    FProdutosCardapio := TObjectList<TProduto>.Create(True);
+    FProdutosCardapio.Clear;
+    Result := True;
   end;
+end;
+
+function TVenda.AtualizarTotalPedido: Boolean;
+begin
+  frmPrincipal.lblVlrTotPedido.Text := 'R$' + FormatFloat('0.00', Venda.Pedido.GetTotalPedido);
 end;
 
 function TVenda.BuscarCardapio(QRCode: String): Boolean;
@@ -119,7 +130,8 @@ var
   Mensagem: String;
   I: Integer;
   JSONArray: TJSONArray;
-  Erro: string;
+  Erro: String;
+  NomeEmpresa: String;
 begin
 
   frmPrincipal.FLoading.Exibir('Buscando cardápio');
@@ -132,7 +144,7 @@ begin
       with DM1 do
       begin
         RESTClient.BaseURL := BaseUrl;
-        if not ObterEmpresa(Mensagem) then
+        if not ObterEmpresa(Mensagem, NomeEmpresa) then
         begin
           {$IFDEF ANDROID}
           if TPlatformServices.Current.SupportsPlatformService(IFMXDialogServiceAsync, IInterface (ASyncService)) then
@@ -153,6 +165,8 @@ begin
         TThread.Synchronize(nil,
         procedure
         begin
+          if not (NomeEmpresa.Trim.IsEmpty) then
+            frmPrincipal.lblNomeEmpresa.Text := NomeEmpresa;
           if CriarCardapio(JSONArray) then
           begin
             frmPrincipal.CriarItemCardapio;
@@ -168,6 +182,7 @@ begin
         TThread.Synchronize(nil,
         procedure
         begin
+          frmPrincipal.lblNomeEmpresa.Text := EmptyStr;
           frmPrincipal.FLoading.Fechar;
           frmPrincipal.FLoading.Exibir;
           frmPrincipal.Dlg.Mensagem( E.Message);
@@ -269,9 +284,7 @@ end;
 
 destructor TVenda.Destroy;
 begin
-  ApagarCardapioAtual;
   FreeAndNil(FPedido);
-
   FreeAndNil(FProdutosCardapio);
   inherited;
 end;
