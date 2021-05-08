@@ -1,7 +1,7 @@
 object DM1: TDM1
   OldCreateOrder = False
   Height = 477
-  Width = 504
+  Width = 590
   object conn: TFDConnection
     Params.Strings = (
       'Database=D:\Delphi\TCC\QuickTab-App\db\banco.db'
@@ -29,8 +29,8 @@ object DM1: TDM1
       end>
     Resource = 'CriarPedido'
     SynchronizedEvents = False
-    Left = 72
-    Top = 176
+    Left = 216
+    Top = 184
   end
   object RESTClient: TRESTClient
     Authenticator = HTTPBasicAuthenticator
@@ -47,8 +47,8 @@ object DM1: TDM1
     FetchOptions.AssignedValues = [evMode]
     SQL.Strings = (
       'select * from tb_usuario;')
-    Left = 368
-    Top = 64
+    Left = 360
+    Top = 24
   end
   object RequestListarProduto: TRESTRequest
     Client = RESTClient
@@ -56,8 +56,8 @@ object DM1: TDM1
     Params = <>
     Resource = 'ListarProduto'
     SynchronizedEvents = False
-    Left = 197
-    Top = 176
+    Left = 69
+    Top = 184
   end
   object RequestObterEmpresa: TRESTRequest
     Client = RESTClient
@@ -82,7 +82,63 @@ object DM1: TDM1
   end
   object FDGUIxWaitCursor1: TFDGUIxWaitCursor
     Provider = 'FMX'
-    Left = 432
-    Top = 168
+    Left = 448
+    Top = 32
+  end
+  object RequestExcluirProdutoPedido: TRESTRequest
+    Client = RESTClient
+    Params = <>
+    Resource = 'ExcluirProdutoPedido'
+    SynchronizedEvents = False
+    Left = 216
+    Top = 256
+  end
+  object RequestAdicionarProdutoPedido: TRESTRequest
+    Client = RESTClient
+    Method = rmPOST
+    Params = <>
+    Resource = 'AdicionarProdutoPedido'
+    SynchronizedEvents = False
+    Left = 221
+    Top = 328
+  end
+  object RequestCancelarPedido: TRESTRequest
+    Client = RESTClient
+    Method = rmPOST
+    Params = <>
+    Resource = 'CancelarPedido'
+    SynchronizedEvents = False
+    Left = 365
+    Top = 256
+  end
+  object RequestObterStatusPedido: TRESTRequest
+    Client = RESTClient
+    Method = rmPOST
+    Params = <>
+    Resource = 'ObterStatusPedido'
+    SynchronizedEvents = False
+    Left = 493
+    Top = 184
+  end
+  object RequestEncerrarPedido: TRESTRequest
+    Client = RESTClient
+    Method = rmPOST
+    Params = <>
+    Resource = 'EncerrarPedido'
+    SynchronizedEvents = False
+    Left = 365
+    Top = 328
+  end
+  object RequestAtualizarPedido: TRESTRequest
+    Client = RESTClient
+    Method = rmPOST
+    Params = <
+      item
+        Name = 'teste'
+      end>
+    Resource = 'AtualizarPedido'
+    SynchronizedEvents = False
+    Left = 360
+    Top = 184
   end
 end

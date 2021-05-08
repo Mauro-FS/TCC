@@ -205,6 +205,7 @@ type
     function VerificaCamposConfig: Boolean;
     function VerificaAbas: Boolean;
     function AdicionarPedido(Mesa, Status, ID: String): Boolean;
+    function AtualizarPedido(Mesa, Status, ID: String): Boolean;
     function GetPedidos: Boolean;
     function ListarProdutosPedido: Boolean;
   end;
@@ -235,6 +236,7 @@ begin
       Texto.Text := 'Mesa ' + Mesa;
       Texto.TextColor := $FF404852;
       Texto := TListItemText(Objects.FindDrawable('Text3'));
+      TagString := Status;
       if Status = 'P' then
       begin
         Texto.Text := 'Pendente';
@@ -278,6 +280,23 @@ begin
   FAnimacao.Interpolation := TInterpolationType.Linear;
   FAnimacao.OnFinish := FinalizaAnimacao;
   FAnimacao.Start;
+end;
+
+function TfrmPrincipal.AtualizarPedido(Mesa, Status, ID: String): Boolean;
+var
+  I: Integer;  
+begin
+  for I := 0 to lvwPedidosRecebidos.Items.Count - 1 do
+  begin
+    if lvwPedidosRecebidos.Items.Item[I].Tag = ID.Trim.ToInteger then
+    begin
+      lvwPedidosRecebidos.Items.Delete(I);
+      AdicionarPedido(Mesa, Status, ID);
+      lvwPedidosRecebidos.Selected := nil;
+      lvwProdutosPedido.Items.Clear;
+      Break;
+    end;    
+  end;  
 end;
 
 procedure TfrmPrincipal.FinalizaAnimacao(Sender: TObject);
@@ -358,6 +377,7 @@ var
   Texto: TListItemText;
   Qry: TFDQuery;
   I: Integer;
+  Status: String;
 begin
   lvwProdutosPedido.Items.Clear;
   Result := False;
@@ -372,6 +392,8 @@ begin
         for I := 0 to Qry.RecordCount - 1 do
         begin
 
+//          Qry.Fields.
+
           Item := lvwProdutosPedido.Items.Add;
           with Item do
           begin
@@ -381,9 +403,31 @@ begin
             Texto := TListItemText(Objects.FindDrawable('Text2'));
             Texto.Text := Qry.FieldByName('nome').AsString;
             Texto := TListItemText(Objects.FindDrawable('Text3'));
-            Texto.Text := 'Obs: ' + Qry.FieldByName('observacao').AsString;
-          end;
+            Texto.Text := 'Obs: ' + Qry.FieldByName('observacao').AsString;            
 
+            Status := Qry.FieldByName('status').AsString;
+            Texto := TListItemText(Objects.FindDrawable('Text4'));
+            if Status = 'P' then
+            begin
+              Texto.Text := 'Pendente';
+              Texto.TextColor := $FFB98D20;
+            end
+            else if Status = 'C'  then
+            begin
+              Texto.Text := 'Cancelado';
+              Texto.TextColor := $FFEB5757;
+            end
+            else if Status = 'F'  then
+            begin
+              Texto.Text := 'Finalizado';
+              Texto.TextColor := $FF227C22;
+            end
+            else if Status = 'A'  then
+            begin
+              Texto.Text := 'Em Preparo';
+              Texto.TextColor := $FFB98D20;
+            end;            
+          end;
           Qry.Next;
         end;
         lvwProdutosPedido.EndUpdate;
@@ -943,6 +987,8 @@ begin
 end;
 
 procedure TfrmPrincipal.recCancelarPedidoClick(Sender: TObject);
+var
+  ItemSelecionado: Integer;
 begin
   AnimarClick(Sender);
   if not (lvwPedidosRecebidos.Selected = nil) then
@@ -964,8 +1010,11 @@ begin
         if ModalResult = mrOK then
           if AlterarStatusPedido('C', lvwPedidosRecebidos.Selected.Tag) then
           begin
+            ItemSelecionado := lvwPedidosRecebidos.Selected.Index;
             lvwPedidosRecebidos.Items.Clear;
             GetPedidos;
+            lvwPedidosRecebidos.Selected := lvwPedidosRecebidos.Items.Item[ItemSelecionado];
+            frmPrincipal.ListarProdutosPedido;
           end;
       end;
     end);
@@ -974,8 +1023,9 @@ begin
 end;
 
 procedure TfrmPrincipal.recConfirmarPedidoClick(Sender: TObject);
+var
+  ItemSelecionado: Integer;
 begin
-  
   AnimarClick(Sender);
   // checar o selected antes de realizar a rotina
   if not (lvwPedidosRecebidos.Selected = nil) then
@@ -993,8 +1043,11 @@ begin
           if ModalResult = mrOK then
             if AlterarStatusPedido('A', lvwPedidosRecebidos.Selected.Tag) then
             begin
+              ItemSelecionado := lvwPedidosRecebidos.Selected.Index;
               lvwPedidosRecebidos.Items.Clear;
               GetPedidos;
+              lvwPedidosRecebidos.Selected := lvwPedidosRecebidos.Items.Item[ItemSelecionado];
+              frmPrincipal.ListarProdutosPedido;
             end;
         end;
       end);
@@ -1046,6 +1099,8 @@ begin
 end;
 
 procedure TfrmPrincipal.recFinalizarPedidoClick(Sender: TObject);
+var
+  ItemSelecionado: Integer;
 begin
   AnimarClick(Sender);
   if not (lvwPedidosRecebidos.Selected = nil) then
@@ -1067,8 +1122,11 @@ begin
         if ModalResult = mrOK then
           if AlterarStatusPedido('F', lvwPedidosRecebidos.Selected.Tag) then
           begin
+            ItemSelecionado := lvwPedidosRecebidos.Selected.Index;
             lvwPedidosRecebidos.Items.Clear;
             GetPedidos;
+            lvwPedidosRecebidos.Selected := lvwPedidosRecebidos.Items.Item[ItemSelecionado];
+            frmPrincipal.ListarProdutosPedido;
           end;
       end;
     end);

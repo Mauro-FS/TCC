@@ -25,6 +25,12 @@ type
     RequestObterEmpresa: TRESTRequest;
     RequestSolicitarAtendente: TRESTRequest;
     FDGUIxWaitCursor1: TFDGUIxWaitCursor;
+    RequestExcluirProdutoPedido: TRESTRequest;
+    RequestAdicionarProdutoPedido: TRESTRequest;
+    RequestCancelarPedido: TRESTRequest;
+    RequestObterStatusPedido: TRESTRequest;
+    RequestEncerrarPedido: TRESTRequest;
+    RequestAtualizarPedido: TRESTRequest;
     procedure connBeforeConnect(Sender: TObject);
   private
     { Private declarations }
@@ -39,21 +45,34 @@ type
     function ObterEmpresa(out Erro: String; out NomeEmpresa: String): Boolean;
     function InserirEmpresa(out JSONObj: TJsonObject): Boolean;
     function AtualizarEmpresa(out JSONObj: TJsonObject): Boolean;
+    function RecuperarEmpresa(Qry: TFDQuery): Boolean;
     function BuscarEmpresa(CNPJ: String): Boolean;
 
     //Cardapio e produtos
-    function BuscarCardapio(out Qry: TFDQuery): Boolean;
+    function ObterCardapio(out Qry: TFDQuery): Boolean;
     function InserirCardapio(SeqProduto: Integer; Nome, Categoria: String; Preco: Double; Descricao, Imagem, Mesa: String): Boolean;
     function ListarProduto(out JsonArray: TJSONArray; out Erro: String): Boolean;
     procedure ApagarCardapio;
 
-    //Pedido
-    function CriarPedido(out Erro: String; out NroPedido: String): Boolean;
-    function InserirPedido(Mesa: String; out Erro: String): Boolean;
+    //Pedido local
+    function InserirPedido(Mesa: String; out SeqPedido: Integer; out Erro: String): Boolean;
+    function AtualizarItensPedido(Mesa: String; out Erro: String): Boolean;
     function InserirNroPedido(SeqPedido: Integer; NroPedido: String; out Erro: String): Boolean;
     function AtualizarStatusPedido(SeqPedido: Integer; Status: String; out Erro: String): Boolean;
-    function RemoverPedido(SeqPedido: Integer; out Erro: String): Boolean;
     function VerificarPedidoAtivo: Boolean;
+    function FinalizarPedidosPendentes: Boolean;
+    function ObterItensPedidoAtual(Qry: TFDQuery): Boolean;
+    function VerificarQtdItensPedido(SeqPedido: Integer; out Qtd: Integer; out Erro: String): Boolean;
+    function StatusPedido(SeqPedido: Integer; out Status: String): Boolean;
+    function ObterInfoPedido(Qry: TFDQuery): Boolean;
+
+    //Pedido remoto
+    function CriarPedido(out Erro: String; out NroPedido: String): Boolean;
+    function ObterStatusPedido(SeqPedido: Integer; out Erro: String; out Status: String): Boolean;
+    function FinalizarPedido(SeqPedido: Integer; out Erro: String): Boolean;
+    function CancelarPedido(SeqPedido: Integer; out Erro: String): Boolean;
+    function AtualizarPedido(SeqPedido: Integer; out Erro: String): Boolean;
+    function RemoverPedido(SeqPedido: Integer; out Erro: String): Boolean;
 
     //Outros
     function SolicitarAtendente(out Erro: String; Mesa: String): Boolean;
@@ -110,7 +129,7 @@ begin
         if not BuscarEmpresa(JSONObj.GetValue('cnpj').ToString) then
           Result := InserirEmpresa(JSONObj)
         else
-         Result := AtualizarEmpresa(JSONObj);
+          Result := AtualizarEmpresa(JSONObj);
       end
       else
       begin
@@ -124,6 +143,18 @@ begin
     Qry.DisposeOf;
     JSONObj.DisposeOf;
   end;
+end;
+
+function TDM1.ObterInfoPedido(Qry: TFDQuery): Boolean;
+begin
+  Result := False;
+  if not Assigned(Qry) then
+    Qry := TFDQuery.Create(nil);
+  Qry.Connection := DM1.conn;
+
+  Qry.SQL.Clear;
+  Qry.SQL.Add('select * from tb_pedido where not ((status = ''F'') or (status = ''C'')) order by dtaultalteracao desc');
+  Qry.Active := True;      
 end;
 
 function TDM1.ObterInfoUsuario(out Qry: TFDQuery): Boolean;
@@ -140,6 +171,90 @@ begin
 
   if Qry.RecordCount > 0 then
     Result := True;
+end;
+
+function TDM1.ObterItensPedidoAtual(Qry: TFDQuery): Boolean;
+var
+  LPedido: Integer;
+begin
+  Result := False;
+  if not Assigned(Qry) then
+    Qry := TFDQuery.Create(nil);
+  Qry.Connection := DM1.conn;
+
+  Qry.SQL.Clear;
+  Qry.SQL.Add('select * from tb_pedido where ((status = ''P'') or (status = ''A'')) order by dtaultalteracao desc');
+  Qry.Active := True;
+
+  LPedido := Qry.FieldByName('seqpedido').AsInteger;
+  
+  Qry.SQL.Clear;
+  Qry.SQL.Add('select * from tb_pedidoitem where seqpedido = :seqpedido order by seqpedidoitem asc');
+  Qry.ParamByName('seqpedido').Value := LPedido;
+  Qry.Active := True;      
+end;
+
+function TDM1.ObterStatusPedido(SeqPedido: Integer; out Erro: String; out Status: String): Boolean;
+var
+  JSON: String;
+  JSONObj: TJsonObject;
+  NroPedido: Integer;
+  Qry : TFDQuery;
+begin
+  try
+    Result := False;
+    Erro := '';
+    JSONObj := TJSONObject.Create;
+
+    Qry := TFDQuery.Create(nil);
+    Qry.Connection := DM1.conn;
+    Qry.Active := False;
+    Qry.SQL.Clear;
+    Qry.SQL.Add('select max(seqpedido) as seqpedido, nropedido from tb_pedido');
+    Qry.Active := True;
+
+    if not (Qry.FieldByName('nropedido').Value > 0) then
+    begin
+      Erro := 'Não foi possível encontrar o número do pedido';
+      Exit;
+    end;
+
+    NroPedido := Qry.FieldByName('nropedido').Value;
+    SeqPedido := Qry.FieldByName('seqpedido').Value;
+    with RequestObterStatusPedido do
+    begin
+      Params.Clear;
+      AddParameter('seqpedido', NroPedido.ToString, TRESTRequestParameterKind.pkGETorPOST);
+      Execute;
+    end;
+
+    if RequestObterStatusPedido.Response.StatusCode <> 200 then
+    begin
+      Result := False;
+      Erro := 'Erro ao obter o status do pedido: ' + RequestObterStatusPedido.Response.StatusCode.ToString;
+    end
+    else
+    begin
+      JSON := RequestObterStatusPedido.Response.JSONValue.ToString;
+      JSONObj := TJSONObject.ParseJSONValue(TEncoding.UTF8.GetBytes(JSON), 0) as TJSONObject;
+
+      if JSONObj.GetValue('retorno').Value = 'OK' then
+      begin
+        Status := JSONObj.GetValue('status').Value;
+        if AtualizarStatusPedido(SeqPedido, Status, Erro) then
+          Result := True;
+      end
+      else
+      begin
+        Result := False;
+        Erro := JSONObj.GetValue('mensagem').Value;
+      end;
+    end;
+  finally
+    Json := EmptyStr;
+    FreeAndNil(JSONObj);
+    Qry.DisposeOf;
+  end;
 end;
 
 function TDM1.PrimeiroAcesso: Boolean;
@@ -163,6 +278,18 @@ begin
   finally
     Qry.DisposeOf;
   end;
+end;
+
+function TDM1.RecuperarEmpresa(Qry: TFDQuery): Boolean;
+begin
+  Result := False;
+  if not Assigned(Qry) then
+    Qry := TFDQuery.Create(nil);
+  Qry.Connection := DM1.conn;
+
+  Qry.SQL.Clear;
+  Qry.SQL.Add('select * from tb_empresa');
+  Qry.Active := True;   
 end;
 
 function TDM1.RemoverPedido(SeqPedido: Integer; out Erro: String): Boolean;
@@ -237,7 +364,7 @@ begin
   end;
 end;
 
-function TDM1.VerificarPedidoAtivo: Boolean;
+function TDM1.StatusPedido(SeqPedido: Integer; out Status: String): Boolean;
 var
   Qry: TFDQuery;
 begin
@@ -246,14 +373,85 @@ begin
     Qry := TFDQuery.Create(nil);
     Qry.Connection := DM1.conn;
     Qry.SQL.Clear;
-    Qry.SQL.Add('select * from tb_pedido where not ((status = ''F'') or (status = ''P''))');
+    Qry.SQL.Add('select status from tb_pedido where seqpedido = :seqpedido');
+    Qry.ParamByName('seqpedido').Value := SeqPedido;
     Qry.Active := True;
 
     if Qry.RecordCount > 0 then
+    begin
+      Status := Qry.FieldByName('status').Value;
       Result := True;
+    end;
 
   finally
     Qry.DisposeOf;
+  end;
+end;
+
+function TDM1.VerificarPedidoAtivo: Boolean;
+var
+  Qry: TFDQuery;
+  LPedido : Integer;
+begin
+  try
+    Result := False;
+    Qry := TFDQuery.Create(nil);
+    Qry.Connection := DM1.conn;
+    Qry.SQL.Clear;
+    Qry.SQL.Add('select * from tb_pedido where ((status = ''P'') or (status = ''A'')) order by dtaultalteracao desc');
+    Qry.Active := True;
+
+    if Qry.RecordCount > 0 then
+    begin
+      LPedido := Qry.FieldByName('seqpedido').Value;
+
+      Qry.SQL.Clear;
+      Qry.SQL.Add('select * from tb_pedidoitem where seqpedido = :seqpedido');
+      Qry.ParamByName('seqpedido').Value := LPedido;
+      Qry.Active := True;
+
+      if Qry.RecordCount > 0 then
+        Result := True;
+    end;
+  finally
+    Qry.DisposeOf;
+  end;
+end;
+
+function TDM1.VerificarQtdItensPedido(SeqPedido: Integer; out Qtd: Integer;
+  out Erro: String): Boolean;
+var
+  Qry: TFDQuery;
+begin
+  try
+    try
+      Qry := TFDQuery.Create(nil);
+      Qry.Connection := DM1.conn;
+      Qry.Active := False;
+      Qry.SQL.Clear;
+      Qry.SQL.Add('select max(seqpedido) as seqpedido from tb_pedido');
+      Qry.Active := True;
+
+      if not (Qry.FieldByName('seqpedido').Value > 0) then
+      begin
+        Erro := 'Não foi possível encontrar o pedido';
+        Exit;
+      end;
+
+      SeqPedido := Qry.FieldByName('seqpedido').Value;
+
+      Qry.SQL.Clear;
+      Qry.SQL.Add('select * from tb_pedidoitem where seqpedido = :seqpedido');
+      Qry.ParamByName('seqpedido').Value := SeqPedido;
+      Qry.Active := True;
+
+      Qtd := Qry.RecordCount;
+      Result := True;
+    finally
+      Qry.DisposeOf;
+    end;
+  except
+    Erro := 'Erro ao verificar a quantidade de itens do pedido';
   end;
 end;
 
@@ -261,10 +459,10 @@ function TDM1.InserirEmpresa(out JSONObj: TJsonObject): Boolean;
 var
   Qry: TFDQuery;
 begin
-  try
-    Qry := TFDQuery.Create(nil);
-    Qry.Connection := DM1.conn;
-    try
+  try    
+    try   
+      Qry := TFDQuery.Create(nil);
+      Qry.Connection := DM1.conn;
       Qry.SQL.Clear;
       Qry.SQL.Add('insert into tb_empresa(nomeempresa, cnpj, endereco, numero, cep, cidade, estado, distancia) ');
       Qry.SQL.Add('values(:nomeempresa, :cnpj, :endereco, :numero, :cep, :cidade, :estado, :distancia)');
@@ -311,16 +509,17 @@ begin
   end;
 end;
 
-function TDM1.InserirPedido(Mesa: String;
+function TDM1.InserirPedido(Mesa: String; out SeqPedido: Integer;
   out Erro: String): Boolean;
 var
   Qry : TFDQuery;
   LUsuario: Integer;
-  LPedido: Integer;
   I: Integer;
+  LMaxPedido: Integer;
 begin
   try
     try
+      LMaxPedido := 0;
       Result := False;
       Qry := TFDQuery.Create(nil);
       Qry.Connection := DM1.conn;
@@ -337,6 +536,12 @@ begin
       LUsuario := Qry.FieldByName('sequsuario').AsInteger;
 
       Qry.SQL.Clear;
+      Qry.SQL.Add('select max(seqpedido) as seqpedido from tb_pedido');
+      Qry.Active := True;
+      if (Qry.RecordCount > 0) then
+        LMaxPedido := Qry.FieldByName('seqpedido').AsInteger;
+      
+      Qry.SQL.Clear;
       Qry.SQL.Add('insert into tb_pedido(sequsuario, mesa, status, dtaabertura, dtaultalteracao) ');
       Qry.SQL.Add('values(:sequsuario, :mesa, :status, current_timestamp, current_timestamp) ');
       Qry.ParamByName('sequsuario').Value := LUsuario;
@@ -345,7 +550,7 @@ begin
       Qry.ExecSQL;
 
       Qry.SQL.Clear;
-      Qry.SQL.Add('select * from tb_pedido');
+      Qry.SQL.Add('select max(seqpedido) as seqpedido from tb_pedido');
       Qry.Active := True;
 
       if (Qry.RecordCount = 0) or (Venda.Pedido.ListaProdutos.Count = 0) then
@@ -354,22 +559,26 @@ begin
         Exit;
       end;
 
-      LPedido := Qry.FieldByName('seqpedido').Value;
+      if not (Qry.FieldByName('seqpedido').AsInteger = LMaxPedido + 1)then
+      begin        
+        Erro := 'Erro ao criar o pedido! Tente novamente ou chame um atendente';
+        Exit;
+      end;
+      SeqPedido := Qry.FieldByName('seqpedido').Value;
 
       for I := 0 to Venda.Pedido.ListaProdutos.Count - 1 do
       begin
         Qry.SQL.Clear;
         Qry.SQL.Add('insert into tb_pedidoitem(seqpedido, seqproduto, quantidade, observacao) ');
         Qry.SQL.Add('values(:seqpedido, :seqproduto, :quantidade, :observacao) ');
-        Qry.ParamByName('seqpedido').Value := LPedido;
+        Qry.ParamByName('seqpedido').Value := SeqPedido;
         Qry.ParamByName('seqproduto').Value := Venda.Pedido.ListaProdutos.Items[I].IDProduto;
         Qry.ParamByName('quantidade').Value := Venda.Pedido.ListaProdutos.Items[I].Quantidade;
         Qry.ParamByName('observacao').Value := Venda.Pedido.ListaProdutos.Items[I].Observacao;
         Qry.ExecSQL;
       end;
-
-    finally
       Result := True;
+    finally      
       Qry.DisposeOf;
     end;
   except
@@ -423,6 +632,68 @@ begin
   end;
 end;
 
+function TDM1.AtualizarItensPedido(Mesa: String; out Erro: String): Boolean;
+var
+  Qry : TFDQuery;
+  LUsuario: Integer;
+  LPedido: Integer;
+  I: Integer;
+begin
+  try
+    try
+      Result := False;
+      Qry := TFDQuery.Create(nil);
+      Qry.Connection := DM1.conn;
+      Qry.SQL.Clear;
+      Qry.SQL.Add('select * from tb_usuario');
+      Qry.Active := True;
+
+      if Qry.RecordCount = 0 then
+      begin
+        Erro := 'Erro de usuário. Verifique as suas informações!';
+        Exit;
+      end;
+
+      LUsuario := Qry.FieldByName('sequsuario').AsInteger;
+
+      Qry.SQL.Clear;
+      Qry.SQL.Add('select max(seqpedido) as seqpedido from tb_pedido');
+      Qry.Active := True;
+
+      if (Qry.RecordCount = 0) or (Venda.Pedido.ListaProdutos.Count = 0) then
+      begin
+        Erro := 'Erro ao inserir novos itens no pedido! Tente novamente ou chame um atendente';
+        Exit;
+      end;
+
+      LPedido := Qry.FieldByName('seqpedido').Value;
+
+      Qry.SQL.Clear;
+      Qry.SQL.Add('select * from tb_pedidoitem where seqpedido = :seqpedido');
+      Qry.ParamByName('seqpedido').Value := LPedido;
+      Qry.Active := True;
+
+      for I := Qry.RecordCount to Venda.Pedido.ListaProdutos.Count - 1 do
+      begin
+        Qry.SQL.Clear;
+        Qry.SQL.Add('insert into tb_pedidoitem(seqpedido, seqproduto, quantidade, observacao) ');
+        Qry.SQL.Add('values(:seqpedido, :seqproduto, :quantidade, :observacao) ');
+        Qry.ParamByName('seqpedido').Value := LPedido;
+        Qry.ParamByName('seqproduto').Value := Venda.Pedido.ListaProdutos.Items[I].IDProduto;
+        Qry.ParamByName('quantidade').Value := Venda.Pedido.ListaProdutos.Items[I].Quantidade;
+        Qry.ParamByName('observacao').Value := Venda.Pedido.ListaProdutos.Items[I].Observacao;
+        Qry.ExecSQL;
+      end;
+    finally
+      Result := True;
+      Qry.DisposeOf;
+    end;
+  except
+    Result := False;
+    Erro := 'Erro ao inserir novos itens no Pedido';
+  end;
+end;
+
 function TDM1.AtualizarSenhaUsuario(Email, Senha: String): Boolean;
 var
   Qry : TFDQuery;
@@ -460,6 +731,7 @@ function TDM1.AtualizarStatusPedido(SeqPedido: Integer; Status: String;
   out Erro: String): Boolean;
 var
   Qry : TFDQuery;
+  NroPedido: Integer;
 begin
   try
     Result := False;
@@ -467,8 +739,19 @@ begin
       Qry := TFDQuery.Create(nil);
       Qry.Connection := DM1.conn;
       Qry.SQL.Clear;
-      Qry.SQL.Add('update tb_pedido set status = :status where seqpedido = :seqpedido');
-      Qry.ParamByName('seqpedido').Value := SeqPedido;
+      Qry.SQL.Add('select max(seqpedido), nropedido from tb_pedido');
+      Qry.Active := True;
+      if Qry.RecordCount = 0 then
+        Exit;
+
+      if (Qry.FieldByName('nropedido').IsNull) or (Qry.FieldByName('nropedido').Value = 0) then
+        Exit;
+
+      NroPedido := Qry.FieldByName('nropedido').Value;
+
+      Qry.SQL.Clear;
+      Qry.SQL.Add('update tb_pedido set status = :status where nropedido = :nropedido');
+      Qry.ParamByName('nropedido').Value := NroPedido;
       Qry.ParamByName('status').Value := Status;
       Qry.ExecSQL;
       Result := True;
@@ -477,14 +760,16 @@ begin
     end;
   except
     Erro := 'Erro ao atualizar o status do pedido';
+    Qry.DisposeOf;
     Result := False;
   end;
 end;
 
-function TDM1.BuscarCardapio(out Qry: TFDQuery): Boolean;
+function TDM1.ObterCardapio(out Qry: TFDQuery): Boolean;
 begin
   Result := False;
-  Qry := TFDQuery.Create(nil);
+  if not Assigned(Qry) then
+    Qry := TFDQuery.Create(nil);
   Qry.Connection := DM1.conn;
 
   Qry.SQL.Clear;
@@ -526,15 +811,6 @@ begin
   try
     Qry := TFDQuery.Create(nil);
     Qry.Connection := DM1.conn;
-//    Qry.SQL.Clear;
-//    Qry.SQL.Add('select 1 from tb_cardapio');
-//    Qry.Active := True;
-
-//    if not Qry.IsEmpty then
-//    begin
-//      Qry.Active := False;
-//      ApagarCardapio;
-//    end;
 
     Qry.SQL.Clear;
     Qry.SQL.Add('insert into tb_cardapio(seqproduto, nome, descricao, categoria, preco, imagem, mesa) ');
@@ -587,6 +863,318 @@ begin
   end;
 end;
 
+function TDM1.FinalizarPedido(SeqPedido: Integer; out Erro: String): Boolean;
+var
+  Json : String;
+  JSONObj: TJsonObject;
+  JSONValue: uDWJSONObject.TJSONValue;
+  Qry : TFDQuery;
+  Status: String;
+  NroPedido: Integer;
+begin
+  try
+    Result := False;
+    Qry := TFDQuery.Create(nil);
+    Qry.Connection := DM1.conn;
+    JSONValue := uDWJSONObject.TJSONValue.Create;
+    JSONObj := TJSONObject.Create;
+    JSONValue.Encoding := TEncodeSelect.esUtf8;
+    Erro := '';
+
+    Qry.Active := False;
+    Qry.SQL.Clear;
+    Qry.SQL.Add('select max(seqpedido) as seqpedido, nropedido from tb_pedido ');
+    Qry.Active := True;
+
+    if not (Qry.FieldByName('nropedido').Value > 0) then
+    begin
+      Erro := 'Não foi possível encontrar o número do pedido';
+      Exit;
+    end;
+
+    NroPedido := Qry.FieldByName('nropedido').Value;
+    SeqPedido := Qry.FieldByName('seqpedido').Value;
+
+    if not ObterStatusPedido(SeqPedido, Erro, Status) then
+      Exit;
+
+    try
+      with RequestEncerrarPedido do
+      begin
+        Params.Clear;
+        AddParameter('seqpedido', NroPedido.ToString, TRESTRequestParameterKind.pkGETorPOST);
+        Execute;
+      end;
+    except on ex:exception do
+      begin
+        Result := False;
+        Erro := 'Erro ao encerrar o pedido: ' + ex.Message;
+        Exit;
+      end;
+    end;
+
+    if RequestEncerrarPedido.Response.StatusCode <> 200 then
+    begin
+      Result := False;
+      Erro := 'Erro ao encerrar o pedido: ' + RequestEncerrarPedido.Response.StatusCode.ToString;
+    end
+    else
+    begin
+      Json := RequestEncerrarPedido.Response.JSONValue.ToString;
+      JSONObj := TJSONObject.ParseJSONValue(TEncoding.UTF8.GetBytes(JSON), 0) as TJSONObject;
+
+      if JSONObj.GetValue('retorno').Value = 'OK' then
+      begin
+        if AtualizarStatusPedido(SeqPedido, 'F', Erro) then
+          Result := True;
+      end
+      else
+      begin
+        Result := False;
+        Erro := JSONObj.GetValue('mensagem').Value;
+      end;
+    end;
+  finally
+    Json := EmptyStr;
+    FreeAndNil(JSONValue);
+    FreeAndNil(JSONObj);
+    Qry.DisposeOf;
+  end;
+end;
+
+function TDM1.FinalizarPedidosPendentes: Boolean;
+var
+  Qry: TFDQuery;
+  LPedido : Integer;
+begin
+  try
+    Result := False;
+    Qry := TFDQuery.Create(nil);
+    Qry.Connection := DM1.conn;
+    Qry.SQL.Clear;
+    Qry.SQL.Add('select max(seqpedido) as seqpedido from tb_pedido where ((status = ''P'') or (status = ''A'')) order by dtaultalteracao desc');
+    Qry.Active := True;
+
+    if Qry.RecordCount > 0 then
+    begin
+      LPedido := Qry.FieldByName('seqpedido').Value;
+
+      Qry.SQL.Clear;
+      Qry.SQL.Add('update tb_pedido set status = ''C'' where not (seqpedido = :seqpedido)');
+      Qry.ParamByName('seqpedido').Value := LPedido;
+      Qry.ExecSQL;
+
+      Result := True;
+    end;
+  finally
+    Qry.DisposeOf;
+  end;
+end;
+
+function TDM1.CancelarPedido(SeqPedido: Integer; out Erro: String): Boolean;
+var
+  Json : String;
+  JSONObj: TJsonObject;
+  JSONValue: uDWJSONObject.TJSONValue;
+  Qry : TFDQuery;
+  Status: String;
+  NroPedido: Integer;
+begin
+  try
+    Result := False;
+    Qry := TFDQuery.Create(nil);
+    Qry.Connection := DM1.conn;
+    JSONValue := uDWJSONObject.TJSONValue.Create;
+    JSONObj := TJSONObject.Create;
+    JSONValue.Encoding := TEncodeSelect.esUtf8;
+    Erro := '';
+
+    Qry.Active := False;
+    Qry.SQL.Clear;
+    Qry.SQL.Add('select max(seqpedido) as seqpedido, nropedido from tb_pedido ');
+    Qry.Active := True;
+
+    if not (Qry.FieldByName('nropedido').Value > 0) then
+    begin
+      Erro := 'Não foi possível encontrar o número do pedido';
+      Exit;
+    end;
+
+    NroPedido := Qry.FieldByName('nropedido').Value;
+    SeqPedido := Qry.FieldByName('seqpedido').Value;
+
+    if not ObterStatusPedido(SeqPedido, Erro, Status ) then
+      Exit;
+
+    try
+      with RequestCancelarPedido do
+      begin
+        Params.Clear;
+        AddParameter('seqpedido', NroPedido.ToString, TRESTRequestParameterKind.pkGETorPOST);
+        Execute;
+      end;
+    except on ex:exception do
+      begin
+        Result := False;
+        Erro := 'Erro ao cancelar o pedido: ' + ex.Message;
+        Exit;
+      end;
+    end;
+
+    if RequestCancelarPedido.Response.StatusCode <> 200 then
+    begin
+      Result := False;
+      Erro := 'Erro ao cancelar o pedido: ' + RequestCancelarPedido.Response.StatusCode.ToString;
+    end
+    else
+    begin
+      Json := RequestCancelarPedido.Response.JSONValue.ToString;
+      JSONObj := TJSONObject.ParseJSONValue(TEncoding.UTF8.GetBytes(JSON), 0) as TJSONObject;
+
+      if JSONObj.GetValue('retorno').Value = 'OK' then
+      begin
+        if AtualizarStatusPedido(SeqPedido, 'C', Erro) then
+          Result := True;
+      end
+      else
+      begin
+        Result := False;
+        Erro := JSONObj.GetValue('mensagem').Value;
+      end;
+    end;
+  finally
+    Qry.DisposeOf;
+    Json := EmptyStr;
+    FreeAndNil(JSONValue);
+    FreeAndNil(JSONObj);
+  end;
+end;
+
+function TDM1.AtualizarPedido(SeqPedido: Integer; out Erro: String): Boolean;
+var
+  Json : String;
+  JSONObj: TJsonObject;
+  JSONValue: uDWJSONObject.TJSONValue;
+  Qry : TFDQuery;
+  LMesa: String;
+  LPedido: Integer;
+  LCount: Integer;
+  LMaxItemBefore: Integer;
+begin
+  try
+    Result := False;
+    Qry := TFDQuery.Create(nil);
+    Qry.Connection := DM1.conn;
+    JSONValue := uDWJSONObject.TJSONValue.Create;
+    JSONObj := TJSONObject.Create;
+
+    Qry.Active := False;
+    Qry.SQL.Clear;
+    Qry.SQL.Add('select * from tb_cardapio');
+    Qry.Active := True;
+
+    if Qry.RecordCount = 0 then
+    begin
+      Erro := 'Não existe mesa selecionada';
+      Exit;
+    end;
+
+    LMesa := Qry.FieldByName('mesa').AsString;
+
+    Qry.Active := False;
+    Qry.SQL.Clear;
+    Qry.SQL.Add('select max(seqpedido) as seqpedido from tb_pedido ');
+    Qry.Active := True;
+    SeqPedido := Qry.FieldByName('seqpedido').Value;
+
+    Qry.Active := False;
+    Qry.SQL.Clear;
+    Qry.SQL.Add('select max(seqpedidoitem) as seqpedidoitem from tb_pedidoitem where seqpedido = :seqpedido');
+    Qry.ParamByName('seqpedido').Value := SeqPedido;
+    Qry.Active := True;
+
+    LMaxItemBefore := Qry.FieldByName('seqpedidoitem').Value;
+
+    if not AtualizarItensPedido(LMesa, Erro) then
+      Exit;
+
+    Qry.Active := False;
+    Qry.SQL.Clear;
+    Qry.SQL.Add('select * from tb_pedidoitem where seqpedido = :seqpedido ');
+    Qry.SQL.Add('and seqpedidoitem > :maxitem');
+    Qry.ParamByName('seqpedido').Value := SeqPedido;
+    Qry.ParamByName('maxitem').Value := LMaxItemBefore;
+    Qry.Active := True;
+
+    if Qry.RecordCount = 0 then
+    begin
+      Erro := 'Não existem itens no pedido';
+      Exit;
+    end;
+
+    JSONValue.Encoding := TEncodeSelect.esUtf8;
+    JSONValue.LoadFromDataset('', Qry, False, jmPureJSON);
+
+    Qry.Active := False;
+    Qry.SQL.Clear;
+    Qry.SQL.Add('select nropedido from tb_pedido where seqpedido = :seqpedido ');
+    Qry.ParamByName('seqpedido').Value := SeqPedido;
+    Qry.Active := True;
+
+    if not (Qry.FieldByName('nropedido').Value > 0) then
+    begin
+      Erro := 'Não foi possível encontrar o número do pedido';
+      Exit;
+    end;
+
+    LPedido := Qry.FieldByName('nropedido').Value;  // nropedido = seqpedido da tb_pedido remota
+    Erro := '';
+
+    try
+      with RequestAtualizarPedido do
+      begin
+        Params.Clear;
+        AddParameter('seqpedido', LPedido.ToString, TRESTRequestParameterKind.pkGETorPOST);
+        AddParameter('pedido', JSONValue.ToJSON, TRESTRequestParameterKind.pkGETorPOST);
+        Execute;
+      end;
+    except on ex:exception do
+      begin
+        Result := false;
+        Erro := 'Erro ao atualizar os itens do pedido: ' + ex.Message;
+        Exit;
+      end;
+    end;
+
+    if RequestAtualizarPedido.Response.StatusCode <> 200 then
+    begin
+      Result := False;
+      Erro := 'Erro ao atualizar os itens do pediddo: ' + RequestAtualizarPedido.Response.StatusCode.ToString;
+    end
+    else
+    begin
+      Json := RequestAtualizarPedido.Response.JSONValue.ToString;
+      JSONObj := TJSONObject.ParseJSONValue(TEncoding.UTF8.GetBytes(JSON), 0) as TJSONObject;
+
+      if JSONObj.GetValue('retorno').Value = 'OK' then
+      begin
+        Result := True;
+      end
+      else
+      begin
+        Result := False;
+        Erro := JSONObj.GetValue('mensagem').Value;
+      end;
+
+    end;
+  finally
+    Qry.DisposeOf;
+    Json := EmptyStr;
+    FreeAndNil(JSONValue);
+    FreeAndNil(JSONObj);
+  end;
+end;
+
 function TDM1.ConectarBanco: Boolean;
 begin
   try
@@ -624,6 +1212,8 @@ var
   LPedido: Integer;
 begin
   try
+    FinalizarPedidosPendentes;
+
     Result := False;
     Qry := TFDQuery.Create(nil);
     Qry.Connection := DM1.conn;
@@ -657,12 +1247,13 @@ begin
 
     LMesa := Qry.FieldByName('mesa').AsString;
 
-    if not InserirPedido(LMesa, Erro) then
+    if not InserirPedido(LMesa, LPedido, Erro) then   // out numero pedido criado
       Exit;
 
     Qry.Active := False;
     Qry.SQL.Clear;
-    Qry.SQL.Add('select * from tb_pedidoitem');
+    Qry.SQL.Add('select * from tb_pedidoitem where seqpedido = :seqpedido');
+    Qry.ParamByName('seqpedido').Value := LPedido;
     Qry.Active := True;
 
     if Qry.RecordCount = 0 then
@@ -671,7 +1262,6 @@ begin
       Exit;
     end;
 
-    LPedido := Qry.FieldByName('seqpedido').Value;
     JSONValue.Encoding := TEncodeSelect.esUtf8;
     JSONValue.LoadFromDataset('', Qry, False, jmPureJSON);
     Erro := '';
@@ -698,7 +1288,7 @@ begin
     if RequestCriarPedido.Response.StatusCode <> 200 then
     begin
       Result := False;
-      Erro := 'Erro ao criar pedido: ' + RequestListarProduto.Response.StatusCode.ToString;
+      Erro := 'Erro ao criar pedido: ' + RequestCriarPedido.Response.StatusCode.ToString;
     end
     else
     begin
@@ -722,8 +1312,6 @@ begin
         Result := False;
         Erro := JSONObj.GetValue('mensagem').Value;
       end;
-
-  //    JsonArray := TJSONObject.ParseJSONValue(TEncoding.UTF8.GetBytes(Json), 0) as TJSONArray;
       Result := True;
     end;
   finally
@@ -772,6 +1360,19 @@ begin
       Params.Clear;
       Execute;
     end;
+    
+    if RequestListarProduto.Response.StatusCode <> 200 then
+    begin
+      Result := False;
+      Erro := 'Erro ao listar produto: ' + RequestListarProduto.Response.StatusCode.ToString;
+    end
+    else
+    begin
+      Json := RequestListarProduto.Response.JSONValue.ToString;
+      JsonArray := TJSONObject.ParseJSONValue(TEncoding.UTF8.GetBytes(Json), 0) as TJSONArray;
+      Result := True;
+      Json := EmptyStr;
+    end;
   except on ex:exception do
     begin
       Erro := 'Erro ao listar produto: ' + ex.Message;
@@ -779,17 +1380,6 @@ begin
     end;
   end;
 
-  if RequestListarProduto.Response.StatusCode <> 200 then
-  begin
-    Result := False;
-    Erro := 'Erro ao listar produto: ' + RequestListarProduto.Response.StatusCode.ToString;
-  end
-  else
-  begin
-    Json := RequestListarProduto.Response.JSONValue.ToString;
-    JsonArray := TJSONObject.ParseJSONValue(TEncoding.UTF8.GetBytes(Json), 0) as TJSONArray;
-    Result := True;
-  end;
 end;
 
 end.

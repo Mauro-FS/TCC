@@ -47,6 +47,7 @@ begin
   lblCancelar.Text := 'Não';
   lblMensagem.Text := Texto.Trim;
   recCancelar.Align := TAlignLayout.Left;
+  recCancelar.Visible := True;
   recAceitar.Align := TAlignLayout.Right;
   AlinharForm;
 end;

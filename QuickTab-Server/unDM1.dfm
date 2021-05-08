@@ -21,7 +21,35 @@ object DM1: TDM1
             TypeObject = toParam
             ObjectDirection = odINOUT
             ObjectValue = ovString
-            ParamName = 'teste'
+            ParamName = 'cpf'
+            Encoded = True
+          end
+          item
+            TypeObject = toParam
+            ObjectDirection = odINOUT
+            ObjectValue = ovString
+            ParamName = 'nome'
+            Encoded = True
+          end
+          item
+            TypeObject = toParam
+            ObjectDirection = odINOUT
+            ObjectValue = ovString
+            ParamName = 'email'
+            Encoded = True
+          end
+          item
+            TypeObject = toParam
+            ObjectDirection = odINOUT
+            ObjectValue = ovString
+            ParamName = 'mesa'
+            Encoded = True
+          end
+          item
+            TypeObject = toParam
+            ObjectDirection = odINOUT
+            ObjectValue = ovString
+            ParamName = 'pedido'
             Encoded = True
           end>
         JsonMode = jmPureJSON
@@ -153,6 +181,41 @@ object DM1: TDM1
         JsonMode = jmPureJSON
         Name = 'ObterEmpresa'
         OnReplyEvent = DWEventsEventsObterEmpresaReplyEvent
+      end
+      item
+        Routes = [crAll]
+        DWParams = <
+          item
+            TypeObject = toParam
+            ObjectDirection = odINOUT
+            ObjectValue = ovString
+            ParamName = 'seqpedido'
+            Encoded = True
+          end>
+        JsonMode = jmPureJSON
+        Name = 'CancelarPedido'
+        OnReplyEvent = DWEventsEventsCancelarPedidoReplyEvent
+      end
+      item
+        Routes = [crAll]
+        DWParams = <
+          item
+            TypeObject = toParam
+            ObjectDirection = odINOUT
+            ObjectValue = ovString
+            ParamName = 'seqpedido'
+            Encoded = True
+          end
+          item
+            TypeObject = toParam
+            ObjectDirection = odINOUT
+            ObjectValue = ovString
+            ParamName = 'pedido'
+            Encoded = True
+          end>
+        JsonMode = jmPureJSON
+        Name = 'AtualizarPedido'
+        OnReplyEvent = DWEventsEventsAtualizarPedidoReplyEvent
       end>
     Left = 56
     Top = 104
@@ -161,21 +224,5 @@ object DM1: TDM1
     Connection = conn
     Left = 88
     Top = 24
-  end
-  object DWMemtable: TDWMemtable
-    FieldDefs = <>
-    Left = 136
-    Top = 144
-  end
-  object FDMemTable1: TFDMemTable
-    FetchOptions.AssignedValues = [evMode]
-    FetchOptions.Mode = fmAll
-    ResourceOptions.AssignedValues = [rvSilentMode]
-    ResourceOptions.SilentMode = True
-    UpdateOptions.AssignedValues = [uvCheckRequired, uvAutoCommitUpdates]
-    UpdateOptions.CheckRequired = False
-    UpdateOptions.AutoCommitUpdates = True
-    Left = 168
-    Top = 56
   end
 end

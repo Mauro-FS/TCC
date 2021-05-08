@@ -65,8 +65,6 @@ begin
   Imagem := TMemoryStream.Create;
 end;
 
-
-
 function TProduto.GetImagem: TMemoryStream;
 begin
   Result := FImagem;

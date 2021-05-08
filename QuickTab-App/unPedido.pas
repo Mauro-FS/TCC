@@ -56,8 +56,6 @@ type
     property Status: String read GetStatus write SetStatus;
     property VlrTotal: Double read GetVlrTotal write SetVlrTotal;
     property ListaProdutos: TObjectList<TProduto> read GetListaProdutos write SetListaProdutos;
-
-
     function RemoverQtdProduto(IDProduto: Integer): Boolean;
     function AdicionarQtdProduto(IDProduto: Integer): Boolean;
     function AdicionarProduto(IDProduto: Integer; Quantidade: Integer = 1): Boolean;
@@ -79,11 +77,12 @@ begin
   try
     Produto := TProduto.Create;
     Produto.Nome := Venda.ProdutosCardapio.Items[Idproduto].Nome;
+    Produto.IDProduto := Venda.ProdutosCardapio.Items[Idproduto].IDProduto;
     Produto.Quantidade := Quantidade;
     Produto.Descricao := Venda.ProdutosCardapio.Items[Idproduto].Descricao;
     Produto.Preco := Venda.ProdutosCardapio.Items[Idproduto].Preco;
     Produto.Categoria := Venda.ProdutosCardapio.Items[Idproduto].Categoria;
-    Produto.Imagem := Venda.ProdutosCardapio.Items[Idproduto].Imagem;
+    Produto.Imagem.LoadFromStream(Venda.ProdutosCardapio.Items[Idproduto].Imagem);
     Produto.Quantidade := Quantidade;
     if Assigned(ListaProdutos) then
       ListaProdutos.Add(Produto);
@@ -124,10 +123,8 @@ var
 begin
   try
     Result := False;
-    A := ListaProdutos.Count;
 //    ListaProdutos.Items[IDProduto].DisposeOf;
     ListaProdutos.Remove(ListaProdutos.Items[IDProduto]);
-    A := ListaProdutos.Count;
     Result := True;
   except
     Result := False;
@@ -143,7 +140,6 @@ begin
   Status := EmptyStr;
   NomeUsuario := EmptyStr;
   VlrTotal := 0;
-  FListaProdutos.Clear;
   FreeAndNil(FListaProdutos);
 end;
 

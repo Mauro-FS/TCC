@@ -37,7 +37,7 @@ object frameFundo: TframeFundo
         Stroke.Thickness = 3.000000000000000000
         EndAngle = -90.000000000000000000
         object FloatAnimar: TFloatAnimation
-          Duration = 0.699999988079071000
+          Duration = 0.699999988079071100
           Loop = True
           PropertyName = 'RotationAngle'
           StartValue = 0.000000000000000000

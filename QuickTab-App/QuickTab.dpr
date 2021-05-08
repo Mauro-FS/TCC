@@ -19,7 +19,6 @@ uses
   unMeusDados in 'unMeusDados.pas' {frmMeusDados},
   unOnboarding in 'unOnboarding.pas' {frmOnboarding},
   unHistorico in 'unHistorico.pas' {frmHistorico},
-  unFrameItemPedido in 'unFrameItemPedido.pas' {frameItemPedido: TFrame},
   unDM1 in 'unDM1.pas' {DM1: TDataModule},
   unToast in 'unToast.pas',
   unNotificacao in 'unNotificacao.pas',

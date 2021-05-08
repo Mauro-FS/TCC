@@ -26,16 +26,22 @@ type
     property Pedido: TPedido read GetPedido write SetPedido;
     property ProdutosCardapio: TObjectList<TProduto> read GetProdutosCardapio write SetProdutosCardapio;
     function Acessar(out Erro: String; Email, Senha: String; Lembrar: Boolean): Boolean;
-    function Cadastrar(out Erro: String; Nome, Senha, Email, CPF: String): Boolean;
-    function RecuperarVenda: Boolean;
+    function Cadastrar(out Erro: String; Nome, Senha, Email, CPF: String): Boolean;    
     function VerificarStatusPedido: Boolean;
-    function BuscarIDUltimoPedido: Integer;
-    function AdicionarPedido(out Erro: String; NroPedido: String): Boolean;
+    function BuscarIDUltimoPedido: Integer;    
+    function AtualizarStatusPedido: Boolean;
     function GetCategorias(out ListaCategorias: TStringList): Boolean;
     function BuscarCardapio(QRCode: String): Boolean;
+    function RecuperarVenda: Boolean;
+    function RecuperarPedido: Boolean;
     function CriarCardapio(Cardapio: TJSONArray): Boolean;
     function ApagarCardapioAtual: Boolean;
+    function ApagarPedidoAtual: Boolean;
     function AtualizarTotalPedido: Boolean;
+    function AdicionarPedido(out Erro: String; NroPedido: String): Boolean;
+    function AtualizarPedido(out Erro: String): Boolean;
+    function FinalizarPedido(out Erro: String): Boolean;
+    function CancelarPedido(out Erro: String): Boolean;
   end;
 
 var Venda: TVenda;
@@ -105,17 +111,71 @@ begin
 end;
 
 function TVenda.ApagarCardapioAtual: Boolean;
-var
-  I: Integer;
 begin
   Result := False;
   if FProdutosCardapio.Count > 0 then
   begin
-    frmPrincipal.ApagarCardapio;
+    TThread.Synchronize(nil,
+    procedure
+    begin
+      frmPrincipal.ApagarCardapio;
+    end);
     FreeAndNil(FProdutosCardapio);
     FProdutosCardapio := TObjectList<TProduto>.Create(True);
     FProdutosCardapio.Clear;
     Result := True;
+  end;
+end;
+
+function TVenda.ApagarPedidoAtual: Boolean;
+begin
+  Result := False;
+  if Pedido.ListaProdutos.Count > 0 then
+  begin
+    FreeAndNil(FPedido);
+    FPedido := TPedido.Create;
+  end;
+end;
+
+function TVenda.AtualizarPedido(out Erro: String): Boolean;
+begin
+  Result := False;
+  if DM1.AtualizarPedido(Pedido.IDPedido, Erro) then
+    Result := True;  
+end;
+
+function TVenda.AtualizarStatusPedido: Boolean;
+var
+  Erro: String;
+  Status: String;
+begin
+  if not (DM1.ObterStatusPedido(Venda.Pedido.IDPedido, Erro, Status)) then
+  begin
+    Exit;
+  end;
+  Venda.Pedido.Status := Status;
+  if Status = 'P' then
+    frmPrincipal.lblStatusPedido.Text := 'Pendente'
+  else if Status = 'A' then
+    frmPrincipal.lblStatusPedido.Text := 'Em Preparo'
+  else if Status = 'C' then
+  begin
+    frmPrincipal.lblStatusPedido.Text := 'Status';
+    frmPrincipal.lblNroPedido.Text := 'Nro. Pedido';
+    frmPrincipal.lblVlrTotPedido.Text := 'R$0,00';
+    frmPrincipal.TabBtnPedido.ActiveTab := frmPrincipal.TabBtnFazerPedido;
+    frmPrincipal.tabControlPrincipal.ActiveTab := frmPrincipal.tabMenu;
+    ApagarPedidoAtual;
+    frmPrincipal.TimerStatusPedido.Enabled := False;
+  end
+  else if Status = 'F' then
+  begin
+    frmPrincipal.lblStatusPedido.Text := 'Finalizado';
+    ApagarPedidoAtual;
+    ApagarCardapioAtual;
+    frmPrincipal.PedidoFinalizado;
+    FMesa := EmptyStr;
+    frmPrincipal.TimerStatusPedido.Enabled := False;
   end;
 end;
 
@@ -132,12 +192,12 @@ var
   JSONArray: TJSONArray;
   Erro: String;
   NomeEmpresa: String;
-begin
-
+begin  
   frmPrincipal.FLoading.Exibir('Buscando cardápio');
   TThread.CreateAnonymousThread(procedure
   begin
     try
+//      JSONArray := TJSONArray.Create;
       QRCode := stringreplace(QrCode, '|', '',    [rfReplaceAll, rfIgnoreCase]);
       BaseUrl := Copy(QRCode, 1, QRCode.Length - 3);
       FMesa := Copy(QRCode, BaseUrl.Length + 1, QRCode.Length);
@@ -171,18 +231,21 @@ begin
           begin
             frmPrincipal.CriarItemCardapio;
             frmPrincipal.CriarCategorias;
+            frmPrincipal.lblCardapioPlaceHolder.Visible := False;
             frmPrincipal.FLoading.Fechar;
           end;
         end);
       end;
-
+//      FreeAndNil(JSONArray);
     except
     on E: Exception do
       begin
+//        FreeAndNil(JSONArray);
         TThread.Synchronize(nil,
         procedure
         begin
           frmPrincipal.lblNomeEmpresa.Text := EmptyStr;
+          frmPrincipal.lblCardapioPlaceHolder.Visible := True;
           frmPrincipal.FLoading.Fechar;
           frmPrincipal.FLoading.Exibir;
           frmPrincipal.Dlg.Mensagem( E.Message);
@@ -221,6 +284,17 @@ begin
   end;
 
   Result := True;
+end;
+
+function TVenda.CancelarPedido(out Erro: String): Boolean;
+begin
+  Result := False;
+  if DM1.CancelarPedido(Pedido.IDPedido, Erro) then
+  begin
+    ApagarPedidoAtual;
+    Result := True;
+    frmPrincipal.TimerStatusPedido.Enabled := False;
+  end;  
 end;
 
 constructor TVenda.Create;
@@ -289,6 +363,19 @@ begin
   inherited;
 end;
 
+function TVenda.FinalizarPedido(out Erro: String): Boolean;
+begin            
+  Result := False;
+  if DM1.FinalizarPedido(Pedido.IDPedido, Erro) then
+  begin
+    ApagarPedidoAtual;
+    ApagarCardapioAtual;
+    FMesa := EmptyStr;
+    Result := True;
+    frmPrincipal.TimerStatusPedido.Enabled := False;
+  end;  
+end;
+
 function TVenda.GetCategorias(out ListaCategorias: TStringList): Boolean;
 var
   I: Integer;
@@ -314,9 +401,100 @@ begin
   Result := FPedido;
 end;
 
-function TVenda.RecuperarVenda: Boolean;
+function TVenda.RecuperarPedido: Boolean;
+var
+  I: Integer;
+  Qry: TFDQuery;  
+  Produto: TProduto;
 begin
+  Qry := TFDQuery.Create(nil);
+  Pedido.IDPedido := 0;
 
+  DM1.ObterInfoUsuario(Qry);
+  Pedido.IDUsuario := Qry.FieldByName('sequsuario').AsInteger;
+  Pedido.UsuarioCPF := Qry.FieldByName('cpf').AsString;
+  Pedido.NomeUsuario := Qry.FieldByName('nome').AsString;
+  Pedido.EmailUsuario := Qry.FieldByName('email').AsString;  
+
+  DM1.ObterInfoPedido(Qry);
+  Pedido.Data := Qry.FieldByName('dtaabertura').AsDateTime;  
+  Pedido.Mesa := Qry.FieldByName('mesa').AsInteger;  
+  Pedido.IDPedido := Qry.FieldByName('nropedido').AsInteger;  
+  Pedido.Status := Qry.FieldByName('status').AsString;  
+
+  DM1.ObterItensPedidoAtual(Qry);
+  Qry.First;
+  while not Qry.Eof do
+  begin    
+    for I := 0 to Venda.ProdutosCardapio.Count - 1 do
+    begin
+      if Venda.ProdutosCardapio.Items[I].IDProduto = Qry.FieldByName('seqproduto').AsInteger then
+        Break;
+    end;
+    if Venda.Pedido.AdicionarProduto(I , Qry.FieldByName('quantidade').AsInteger) then      
+      Venda.AtualizarTotalPedido;        
+    Qry.Next;
+  end;    
+  Qry.DisposeOf;  
+end;
+
+function TVenda.RecuperarVenda: Boolean;
+var
+  Qry : TFDQuery;    
+  Produto: TProduto;
+  StringStream: TStringStream;
+begin
+  Qry := TFDQuery.Create(nil);
+
+  Result := False;
+  if DM1.VerificarPedidoAtivo then
+  begin
+    TThread.Synchronize(nil,
+    procedure
+    begin
+      frmPrincipal.FLoading.Exibir('Recuperando Cardápio');
+    end);
+    if DM1.ObterCardapio(Qry) then
+    begin
+       Qry.First;
+       Mesa := Qry.FieldByName('mesa').AsString;
+       ProdutosCardapio.OwnsObjects := True;
+       while not Qry.Eof do
+       begin
+         Produto := TProduto.Create;
+         Produto.IDProduto := Qry.FieldByName('seqproduto').AsInteger;
+         Produto.Nome := Qry.FieldByName('nome').AsString;
+         Produto.Categoria := Qry.FieldByName('categoria').AsString;
+         Produto.Descricao := Qry.FieldByName('descricao').AsString;
+         Produto.Preco := Qry.FieldByName('preco').AsFloat;
+
+         StringStream := TStringStream.Create(Qry.FieldByName('imagem').AsString);
+         StringStream.Position := 0;
+
+         TNetEncoding.Base64.Decode(StringStream, Produto.Imagem);
+         Produto.Imagem.Position := 0;
+
+         ProdutosCardapio.Add(Produto);
+         StringStream.Clear;
+         StringStream.Free;
+         Qry.Next;
+       end;
+    end;
+    RecuperarPedido;
+
+    Qry.Active := False;
+    Qry.SQL.Clear;
+    DM1.RecuperarEmpresa(Qry);
+    TThread.Synchronize(nil,
+    procedure
+    begin
+      frmPrincipal.lblNomeEmpresa.Text := Qry.FieldByName('nomeempresa').AsString;
+      frmPrincipal.lblCardapioPlaceHolder.Visible := False;
+    end);    
+    Pedido.IDEmpresa := Qry.FieldByName('seqempresa').AsInteger;
+    Result := True;     
+  end;    
+  Qry.DisposeOf;
 end;
 
 procedure TVenda.SetProdutosCardapio(Avalue: TObjectList<TProduto>);

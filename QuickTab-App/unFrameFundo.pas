@@ -21,6 +21,7 @@ type
   public
     function Animar: Boolean;
     function Exibir(Mensagem: String = ''): Boolean;
+    function AtualizarMensagem(Mensagem: String): Boolean;
     function Fechar: Boolean;
   end;
 
@@ -33,6 +34,12 @@ implementation
 function TframeFundo.Animar: Boolean;
 begin
   FloatAnimar.Enabled := (not FloatAnimar.Enabled);
+end;
+
+function TframeFundo.AtualizarMensagem(Mensagem: String): Boolean;
+begin
+  lblMensagem.Text := Mensagem;
+  Result := True;
 end;
 
 function TframeFundo.Exibir(Mensagem: String): Boolean;

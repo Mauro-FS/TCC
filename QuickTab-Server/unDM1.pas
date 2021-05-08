@@ -19,8 +19,6 @@ type
     conn: TFDConnection;
     DWEvents: TDWServerEvents;
     QryLogin: TFDQuery;
-    DWMemtable: TDWMemtable;
-    FDMemTable1: TFDMemTable;
     procedure DWEventsEventsListarProdutoReplyEvent(var Params: TDWParams;
       var Result: string);
     procedure DWEventsEventsAdicionarProdutoPedidoReplyEvent(
@@ -38,6 +36,10 @@ type
     procedure DWEventsEventsObterEmpresaReplyEvent(var Params: TDWParams;
       var Result: string);
     procedure DWEventsEventsSolicitarAtendenteReplyEvent(var Params: TDWParams;
+      var Result: string);
+    procedure DWEventsEventsCancelarPedidoReplyEvent(var Params: TDWParams;
+      var Result: string);
+    procedure DWEventsEventsAtualizarPedidoReplyEvent(var Params: TDWParams;
       var Result: string);
 
   private
@@ -70,7 +72,10 @@ type
     function ListarPedidosRecebidos(var Qry: TFDQuery): Boolean;
     function AlterarStatusPedido(Status: String; SeqPedido: Integer): Boolean;
     function ListarProdutosPedido(var Qry: TFDQuery; Seqpedido: String): Boolean;
-
+    function CancelarPedido(SeqPedido: Integer; out Erro: String): Boolean;
+    function FinalizarPedido(SeqPedido: Integer; out Erro: String): Boolean;
+    function VerificarStatusPedido(SeqPedido: Integer; out Status: String): Boolean;
+    function AtualizarStatusItensPedido(SeqPedido: Integer; Status: String): Boolean;
   end;
 
 var
@@ -167,6 +172,8 @@ begin
      Qry.ParamByName('status').Value := Status;
     Qry.ParamByName('seqpedido').Value := SeqPedido;
     Qry.ExecSQL;
+
+    AtualizarStatusItensPedido(SeqPedido, Status);
   finally
     Result := True;
     Qry.DisposeOf;
@@ -238,6 +245,29 @@ begin
     end;
   except
     Result := False;
+  end;
+end;
+
+function TDM1.AtualizarStatusItensPedido(SeqPedido: Integer;
+  Status: String): Boolean;
+var
+  Qry : TFDQuery;
+begin
+  Result := False;
+  try
+    Qry := TFDQuery.Create(nil);
+    Qry.Connection := DM1.conn;
+
+    Qry.Active := False;
+    Qry.SQL.Clear;
+    Qry.SQL.Add('update tb_pedidoitem set status = :status where seqpedido = :seqpedido ');
+    Qry.ParamByName('seqpedido').Value := Seqpedido;
+    Qry.ParamByName('status').Value := Status;
+    Qry.ExecSQL;
+
+    Result := True;
+  finally
+    Qry.DisposeOf;
   end;
 end;
 
@@ -457,6 +487,147 @@ begin
 
 end;
 
+procedure TDM1.DWEventsEventsAtualizarPedidoReplyEvent(var Params: TDWParams;
+  var Result: string);
+var
+  Qry : TFDQuery;
+  Json : TJsonObject;
+  DataSet: TFDDataSet;
+  LUsuario: Integer;
+  LPedido: Integer;
+  I: Integer;
+  LMesa: String;
+  LStatus: String;
+  JSONValue: TJSONValue;
+  JSONArray: TJSONArray;
+begin
+  try
+    Qry := TFDQuery.Create(nil);
+    Qry.Connection := DM1.conn;
+    Json := TJsonObject.Create;
+    JSONValue := TJSONValue.Create;
+    try
+      if (Params.ItemsString['seqpedido'].AsString = '') or
+       (Params.ItemsString['pedido'].AsString = '')then
+      begin
+        Json.AddPair('retorno', 'Erro');
+        Json.AddPair('mensagem', 'Informações incompletas');
+        Result := Json.ToString;
+        Exit;
+      end;
+
+      JSONArray := TJSONObject.ParseJSONValue(TEncoding.UTF8
+       .GetBytes(Params.ItemsString['pedido'].AsString), 0) as TJSONArray;
+
+      Qry.Active := False;
+      Qry.SQL.Clear;
+      Qry.SQL.Add('select * from tb_pedido ');
+      Qry.SQL.Add('where seqpedido = :seqpedido' );
+      Qry.ParamByName('seqpedido').Value := Params.ItemsString['seqpedido'].AsString;
+      Qry.Active := True;
+
+      if Qry.RecordCount = 0 then
+      begin
+        Json.AddPair('retorno', 'Erro');
+        Json.AddPair('mensagem', 'Pedido não encontrado');
+        Result := Json.ToString;
+        Exit;
+      end;
+
+      LPedido := Qry.FieldByName('seqpedido').AsInteger;
+
+      if not AlterarStatusPedido('P', LPedido) then
+      begin
+        Json.AddPair('retorno', 'Erro');
+        Json.AddPair('mensagem', 'Não foi possível alterar o status do pedido');
+        Result := Json.ToString;
+        Exit;
+      end;
+
+      if JSONArray.Size > 0 then
+      begin
+        for I := 0 to JSONArray.Size - 1 do
+        begin
+          Qry.Active := false;
+          Qry.SQL.Clear;
+          Qry.SQL.Add('insert into tb_pedidoitem(seqpedido, seqproduto, quantidade, observacao, status)');
+          Qry.SQL.Add('values(:seqpedido, :seqproduto, :quantidade, :observacao, :status)');
+          Qry.ParamByName('seqpedido').Value := LPedido;
+          Qry.ParamByName('seqproduto').Value := JSONArray.Items[I].GetValue<Integer>('seqproduto');
+          Qry.ParamByName('quantidade').Value := JSONArray.Items[I].GetValue<Integer>('quantidade');
+          Qry.ParamByName('observacao').Value := JSONArray.Items[I].GetValue<String>('observacao');
+          Qry.ParamByName('status').Value := 'P';
+          Qry.ExecSQL;
+        end;
+      end;
+
+      Json.AddPair('retorno', 'OK');
+      Json.AddPair('mensagem', 'Pedido criado');
+      Json.AddPair('nropedido', LPedido.ToString);
+      Result := Json.ToString;
+
+      frmPrincipal.AtualizarPedido(LMesa, 'P', LPedido.ToString);
+    except
+      Json.AddPair('retorno', 'Erro');
+      Json.AddPair('mensagem', 'Erro ao cadastrar o pedido');
+      Result := Json.ToString;
+    end;
+  finally
+    Json.DisposeOf;
+    Qry.DisposeOf;
+    JSONValue.DisposeOf;
+  end;
+end;
+
+procedure TDM1.DWEventsEventsCancelarPedidoReplyEvent(var Params: TDWParams;
+  var Result: string);
+var
+  Json : TJsonObject;
+  Qry : TFDQuery;
+  Erro: String;
+begin
+  try
+    Json := TJsonObject.Create;
+    Qry := TFDQuery.Create(nil);
+    Qry.Connection := DM1.conn;
+
+    // Validar parametros...
+    if Params.ItemsString['seqpedido'].AsString = '' then
+    begin
+      Json.AddPair('retorno', 'Erro');
+      Json.AddPair('mensagem', 'Parametros não informados');
+      Result := Json.ToString;
+      Exit;
+    end;
+
+    try
+     if not (CancelarPedido(Params.ItemsString['seqpedido'].AsInteger, Erro)) then
+     begin
+       Json.AddPair('retorno', 'Erro');
+       Json.AddPair('mensagem', Erro);
+       Result := Json.ToString;
+       Exit;
+     end;
+
+     Json.AddPair('retorno', 'OK');
+     Json.AddPair('mensagem', 'Pedido cancelado');
+
+    except on ex:exception do
+    begin
+      Json.AddPair('retorno', 'Erro');
+      Json.AddPair('mensagem', ex.Message);
+    end;
+    end;
+
+    frmPrincipal.GetPedidos;
+    Result := Json.ToString;
+  finally
+    Qry.DisposeOf;
+    Json.DisposeOf;
+  end;
+
+end;
+
 procedure TDM1.DWEventsEventsCriarPedidoReplyEvent(var Params: TDWParams;
   var Result: string);
 var
@@ -547,12 +718,13 @@ begin
         begin
           Qry.Active := false;
           Qry.SQL.Clear;
-          Qry.SQL.Add('insert into tb_pedidoitem(seqpedido, seqproduto, quantidade, observacao)');
-          Qry.SQL.Add('values(:seqpedido, :seqproduto, :quantidade, :observacao)');
+          Qry.SQL.Add('insert into tb_pedidoitem(seqpedido, seqproduto, quantidade, observacao, status)');
+          Qry.SQL.Add('values(:seqpedido, :seqproduto, :quantidade, :observacao, :status)');
           Qry.ParamByName('seqpedido').Value := LPedido;
           Qry.ParamByName('seqproduto').Value := JSONArray.Items[I].GetValue<Integer>('seqproduto');
           Qry.ParamByName('quantidade').Value := JSONArray.Items[I].GetValue<Integer>('quantidade');
           Qry.ParamByName('observacao').Value := JSONArray.Items[I].GetValue<String>('observacao');
+          Qry.ParamByName('status').Value := 'P';
           Qry.ExecSQL;
         end;
       end;
@@ -581,6 +753,7 @@ procedure TDM1.DWEventsEventsEncerrarPedidoReplyEvent(var Params: TDWParams;
 var
   Json : TJsonObject;
   Qry : TFDQuery;
+  Erro: String;
 begin
   try
     Json := TJsonObject.Create;
@@ -596,15 +769,16 @@ begin
     end;
 
     try
-      Qry.Active := false;
-      Qry.SQL.Clear;
-      Qry.SQL.Add('update tb_pedido set status = ''F'', dtaultalteracao = current_timestamp');
-      Qry.SQL.Add('where seqpedido = :seqpedido');
-      Qry.ParamByName('seqpedido').Value := Params.ItemsString['seqpedido'].AsString;
-      Qry.ExecSQL;
+      if not (FinalizarPedido(Params.ItemsString['seqpedido'].AsInteger, Erro)) then
+      begin
+        Json.AddPair('retorno', 'Erro');
+        Json.AddPair('mensagem', Erro);
+        Result := Json.ToString;
+        Exit;
+      end;
 
       Json.AddPair('retorno', 'OK');
-      Json.AddPair('mensagem', 'Pedido encerrado');
+      Json.AddPair('mensagem', 'Pedido encerrado, aguarde sua conta');
 
     except on ex:exception do
     begin
@@ -613,6 +787,7 @@ begin
     end;
     end;
 
+    frmPrincipal.GetPedidos;
     Result := Json.ToString;
 
   finally
@@ -646,12 +821,23 @@ begin
       Qry.SQL.Clear;
       Qry.SQL.Add('select * from tb_pedido where seqpedido = :seqpedido');
       Qry.Active := True;
-      if (Qry.RecordCount > 0) and (Qry.FieldByName('status').AsString = 'F') then
+      if (Qry.RecordCount > 0) then
       begin
-        Json.AddPair('retorno', 'Erro');
-        Json.AddPair('mensagem', 'Pedido fechado, não é possível excluir o produto');
-        Result := Json.ToString;
-        Exit;
+        if (Qry.FieldByName('status').AsString = 'F') then
+        begin
+          Json.AddPair('retorno', 'Erro');
+          Json.AddPair('mensagem', 'Pedido fechado, não é possível excluir o produto');
+          Result := Json.ToString;
+          Exit;
+        end;
+
+        if (Qry.FieldByName('status').AsString = 'C') then
+        begin
+          Json.AddPair('retorno', 'Erro');
+          Json.AddPair('mensagem', 'Pedido cancelado, não é possível excluir o produto');
+          Result := Json.ToString;
+          Exit;
+        end;
       end;
 
       Qry.Active := False;
@@ -663,7 +849,7 @@ begin
       Qry.ExecSQL;
 
       Json.AddPair('retorno', 'OK');
-      Json.AddPair('mensagem', 'Pedido removido com sucesso');
+      Json.AddPair('mensagem', 'Produto removido com sucesso');
 
     except on ex:exception do
     begin
@@ -874,6 +1060,118 @@ begin
     end;
   finally
     Json.DisposeOf;
+  end;
+end;
+
+function TDM1.VerificarStatusPedido(SeqPedido: Integer;
+  out Status: String): Boolean;
+var
+  Qry : TFDQuery;
+begin
+  Result := False;
+  try
+    Qry := TFDQuery.Create(nil);
+    Qry.Connection := DM1.conn;
+
+    Qry.Active := False;
+    Qry.SQL.Clear;
+    Qry.SQL.Add('select status from tb_pedido where seqpedido = :seqpedido ');
+    Qry.ParamByName('seqpedido').Value := Seqpedido;
+    Qry.Active := True;
+
+    if not (Qry.RecordCount > 0) then
+    begin
+      Status := '';
+      Exit;
+    end;
+    Status := Qry.FieldByName('status').AsString;
+    Result := True;
+  finally
+    Qry.DisposeOf;
+  end;
+end;
+
+
+function TDM1.CancelarPedido(SeqPedido: Integer; out Erro: String): Boolean;
+var
+  Qry : TFDQuery;
+begin
+  Result := False;
+  try
+    Qry := TFDQuery.Create(nil);
+    Qry.Connection := DM1.conn;
+
+    Qry.Active := False;
+    Qry.SQL.Clear;
+    Qry.SQL.Add('select * from tb_pedido where seqpedido = :seqpedido ');
+    Qry.ParamByName('seqpedido').Value := Seqpedido;
+    Qry.Active := True;
+
+    if not (Qry.RecordCount > 0) then
+    begin
+      Erro := 'Pedido não encontrado';
+      Exit;
+    end;
+
+    if Qry.FieldByName('status').Value = 'C' then
+    begin
+      Erro := 'Pedido já cancelado';
+      Exit;
+    end;
+    if Qry.FieldByName('status').Value = 'F' then
+    begin
+      Erro := 'Pedido já finalizado';
+      Exit;
+    end;
+    if Qry.FieldByName('status').Value = 'A' then
+    begin
+      Erro := 'Pedido já está em produção';
+      Exit;
+    end;
+
+    if AlterarStatusPedido('C', SeqPedido) then
+      Result := True;
+  finally
+    Qry.DisposeOf;
+  end;
+end;
+
+function TDM1.FinalizarPedido(SeqPedido: Integer; out Erro: String): Boolean;
+var
+  Qry : TFDQuery;
+begin
+  Result := False;
+  try
+    Qry := TFDQuery.Create(nil);
+    Qry.Connection := DM1.conn;
+
+    Qry.Active := False;
+    Qry.SQL.Clear;
+    Qry.SQL.Add('select * from tb_pedido where seqpedido = :seqpedido ');
+    Qry.ParamByName('seqpedido').Value := Seqpedido;
+    Qry.Active := True;
+
+    if not (Qry.RecordCount > 0) then
+    begin
+      Erro := 'Pedido não encontrado';
+      Exit;
+    end;
+
+    if Qry.FieldByName('status').Value = 'C' then
+    begin
+      Erro := 'Pedido já cancelado';
+      Exit;
+    end;
+    if Qry.FieldByName('status').Value = 'F' then
+    begin
+      Erro := 'Pedido já finalizado';
+      Exit;
+    end;
+
+    if AlterarStatusPedido('F', SeqPedido) then
+      Result := True;
+  finally
+    Qry.DisposeOf;
   end;
 end;
 
