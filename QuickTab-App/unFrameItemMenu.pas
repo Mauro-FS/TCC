@@ -20,12 +20,16 @@ type
     Layout3: TLayout;
     lblPrecoProduto: TLabel;
     imgAddProduto: TImage;
-    procedure FrameClick(Sender: TObject);
-    procedure imgAddProdutoClick(Sender: TObject);
   private
-    { Private declarations }
+    function AddProduto: Boolean;
   public
-    { Public declarations }
+    {$IFDEF ANDROID}
+    procedure imgAddProdutoClick(Sender: TObject; const Point: TPointF);
+    procedure FrameClick(Sender: TObject; const Point: TPointF);
+    {$ELSE}
+    procedure imgAddProdutoClick(Sender: TObject);
+    procedure FrameClick(Sender: TObject);
+    {$ENDIF}
   end;
 
 implementation
@@ -35,12 +39,7 @@ uses
 
 {$R *.fmx}
 
-procedure TframeItemMenu.FrameClick(Sender: TObject);
-begin
-  frmProdutoDetalhado.CarregarProduto(Self.Tag, imgProduto.Bitmap);
-end;
-
-procedure TframeItemMenu.imgAddProdutoClick(Sender: TObject);
+function TframeItemMenu.AddProduto: Boolean;
 begin
   if not Assigned(Venda.Pedido) then
     Venda.Pedido := TPedido.Create;
@@ -50,5 +49,29 @@ begin
     TToast.ToastMessage(frmPrincipal, 'Produto Adicionado');
   end;
 end;
+
+{$IFDEF ANDROID}
+procedure TframeItemMenu.FrameClick(Sender: TObject; const Point: TPointF);
+begin
+  frmProdutoDetalhado.CarregarProduto(Self.Tag, imgProduto.Bitmap);
+end;
+
+procedure TframeItemMenu.imgAddProdutoClick(Sender: TObject;
+  const Point: TPointF);
+begin
+  AddProduto;
+end;
+{$ELSE}
+procedure TframeItemMenu.imgAddProdutoClick(Sender: TObject);
+begin
+  AddProduto;
+end;
+
+procedure TframeItemMenu.FrameClick(Sender: TObject);
+begin
+  frmProdutoDetalhado.CarregarProduto(Self.Tag, imgProduto.Bitmap);
+end;
+
+{$ENDIF}
 
 end.

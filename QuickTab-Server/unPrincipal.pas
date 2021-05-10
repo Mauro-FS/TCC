@@ -89,8 +89,6 @@ type
     Label16: TLabel;
     lblNomeEmpresa: TLabel;
     edtNomeEmpresa: TEdit;
-    lblDistancia: TLabel;
-    edtDistancia: TEdit;
     Layout13: TLayout;
     Layout15: TLayout;
     edtNumero: TEdit;
@@ -1203,13 +1201,13 @@ begin
       if ChecarConfiguracoes then
       begin
         if AtualizarConfiguracoes(edtNomeEmpresa.Text.Trim, edtCNPJ.Text.Trim, edtEndereco.Text.Trim, edtNumero.Text.Trim,
-         edtCEP.Text.Trim, edtCidade.Text.Trim, edtEstado.Text.Trim, edtDistancia.Text.Trim) then
+         edtCEP.Text.Trim, edtCidade.Text.Trim, edtEstado.Text.Trim) then
           Dlg.Mensagem('Informações atualizadas com sucesso');
       end
       else
       begin
         if AdicionarConfiguracoes(edtNomeEmpresa.Text.Trim, edtCNPJ.Text.Trim, edtEndereco.Text.Trim, edtNumero.Text.Trim,
-         edtCEP.Text.Trim, edtCidade.Text.Trim, edtEstado.Text.Trim, edtDistancia.Text.Trim) then
+         edtCEP.Text.Trim, edtCidade.Text.Trim, edtEstado.Text.Trim) then
           Dlg.Mensagem('Informações inseridas com sucesso');
       end;
     end;
@@ -1318,7 +1316,6 @@ begin
         edtCEP.Text := Qry.FieldByName('cep').AsString;
         edtCidade.Text := Qry.FieldByName('cidade').AsString;
         edtEstado.Text := Qry.FieldByName('estado').AsString;
-        edtDistancia.Text := Qry.FieldByName('distancia').AsString;
     end;
   finally
     Qry.DisposeOf;
@@ -1438,11 +1435,6 @@ begin
   if edtEstado.Text.Trim.IsEmpty then
   begin
     Dlg.Mensagem('Preencha o estado');
-    Exit
-  end;
-  if edtDistancia.Text.Trim.IsEmpty then
-  begin
-    Dlg.Mensagem('Preencha a distância');
     Exit
   end;
   Result := True;

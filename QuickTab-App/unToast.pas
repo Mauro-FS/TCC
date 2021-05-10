@@ -79,7 +79,7 @@ begin
   MensagemToast := TLabel.Create(AForm);
   MensagemToast.Parent := FundoToast;
   MensagemToast.Align := TAlignLayout.Client;
-  MensagemToast.Font.Size := 13;
+  MensagemToast.Font.Size := 18;
   MensagemToast.FontColor := ACorFonte;
   MensagemToast.Font.Family := 'Nunito Sans';
   MensagemToast.Font.Style := [TFontStyle.fsBold];

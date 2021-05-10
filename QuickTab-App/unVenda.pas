@@ -5,7 +5,7 @@ interface
 uses
   System.SysUtils, System.Types, System.Generics.Collections, System.Classes, System.Variants,
    FMX.Graphics, unProduto, unPedido, Utils, unDM1, FMX.DialogService,
-   FMX.Platform, System.JSON, FMX.Dialogs, System.NetEncoding,
+   FMX.Platform, System.JSON, FMX.Dialogs, System.NetEncoding, unCamera,
   FireDAC.Comp.Client;
 
 type
@@ -26,9 +26,9 @@ type
     property Pedido: TPedido read GetPedido write SetPedido;
     property ProdutosCardapio: TObjectList<TProduto> read GetProdutosCardapio write SetProdutosCardapio;
     function Acessar(out Erro: String; Email, Senha: String; Lembrar: Boolean): Boolean;
-    function Cadastrar(out Erro: String; Nome, Senha, Email, CPF: String): Boolean;    
+    function Cadastrar(out Erro: String; Nome, Senha, Email, CPF: String): Boolean;
     function VerificarStatusPedido: Boolean;
-    function BuscarIDUltimoPedido: Integer;    
+    function BuscarIDUltimoPedido: Integer;
     function AtualizarStatusPedido: Boolean;
     function GetCategorias(out ListaCategorias: TStringList): Boolean;
     function BuscarCardapio(QRCode: String): Boolean;
@@ -112,6 +112,7 @@ end;
 
 function TVenda.ApagarCardapioAtual: Boolean;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   Result := False;
   if FProdutosCardapio.Count > 0 then
   begin
@@ -129,6 +130,7 @@ end;
 
 function TVenda.ApagarPedidoAtual: Boolean;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   Result := False;
   if Pedido.ListaProdutos.Count > 0 then
   begin
@@ -149,6 +151,7 @@ var
   Erro: String;
   Status: String;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   if not (DM1.ObterStatusPedido(Venda.Pedido.IDPedido, Erro, Status)) then
   begin
     Exit;
@@ -192,28 +195,38 @@ var
   JSONArray: TJSONArray;
   Erro: String;
   NomeEmpresa: String;
-begin  
-  frmPrincipal.FLoading.Exibir('Buscando cardápio');
+begin
+  {$ZEROBASEDSTRINGS OFF}
+  TThread.Synchronize(nil,
+  procedure
+  begin
+    frmCamera.FLoading.Exibir('Buscando cardápio');
+  end);
   TThread.CreateAnonymousThread(procedure
   begin
     try
 //      JSONArray := TJSONArray.Create;
       QRCode := stringreplace(QrCode, '|', '',    [rfReplaceAll, rfIgnoreCase]);
-      BaseUrl := Copy(QRCode, 1, QRCode.Length - 3);
+      BaseUrl :='http://' + Copy(QRCode, 1, QRCode.Length - 3);
       FMesa := Copy(QRCode, BaseUrl.Length + 1, QRCode.Length);
       with DM1 do
       begin
         RESTClient.BaseURL := BaseUrl;
         if not ObterEmpresa(Mensagem, NomeEmpresa) then
         begin
-          {$IFDEF ANDROID}
-          if TPlatformServices.Current.SupportsPlatformService(IFMXDialogServiceAsync, IInterface (ASyncService)) then
+          TThread.Synchronize(nil,
+          procedure
           begin
-            ASyncService.ShowMessageAsync(Mensagem);
-          end;
-          {$ELSE}
-          ShowMessage(Mensagem);
-          {$ENDIF}
+            frmCamera.FLoading.Fechar;
+            frmCamera.FLoading.Exibir;
+            frmCamera.Dlg.Mensagem(Mensagem);
+            frmCamera.Dlg.ShowModal(
+            procedure(ModalResult: TModalResult)
+            begin
+              if frmCamera.Dlg.ModalResult = mrOk then
+                frmCamera.FLoading.Fechar;
+            end);
+          end);
           Exit;
         end;
 
@@ -232,7 +245,7 @@ begin
             frmPrincipal.CriarItemCardapio;
             frmPrincipal.CriarCategorias;
             frmPrincipal.lblCardapioPlaceHolder.Visible := False;
-            frmPrincipal.FLoading.Fechar;
+            frmCamera.FLoading.Fechar;
           end;
         end);
       end;
@@ -246,14 +259,14 @@ begin
         begin
           frmPrincipal.lblNomeEmpresa.Text := EmptyStr;
           frmPrincipal.lblCardapioPlaceHolder.Visible := True;
-          frmPrincipal.FLoading.Fechar;
-          frmPrincipal.FLoading.Exibir;
-          frmPrincipal.Dlg.Mensagem( E.Message);
-          frmPrincipal.Dlg.ShowModal(
+          frmCamera.FLoading.Fechar;
+          frmCamera.FLoading.Exibir;
+          frmCamera.Dlg.Mensagem( E.Message);
+          frmCamera.Dlg.ShowModal(
           procedure(ModalResult: TModalResult)
           begin
-            if frmPrincipal.Dlg.ModalResult = mrOk then
-              frmPrincipal.FLoading.Fechar;
+            if frmCamera.Dlg.ModalResult = mrOk then
+              frmCamera.FLoading.Fechar;
           end);
         end);
       end;
@@ -310,6 +323,7 @@ var
   Produto: TProduto;
   StringStream: TStringStream;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     Result := False;
 
@@ -380,7 +394,10 @@ function TVenda.GetCategorias(out ListaCategorias: TStringList): Boolean;
 var
   I: Integer;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   Result := False;
+  if not Assigned(ListaCategorias) then
+    ListaCategorias := TStringList.Create;
   ListaCategorias.Sorted := True;
   ListaCategorias.Duplicates := dupIgnore;
 
@@ -407,6 +424,7 @@ var
   Qry: TFDQuery;  
   Produto: TProduto;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   Qry := TFDQuery.Create(nil);
   Pedido.IDPedido := 0;
 
@@ -444,6 +462,7 @@ var
   Produto: TProduto;
   StringStream: TStringStream;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   Qry := TFDQuery.Create(nil);
 
   Result := False;

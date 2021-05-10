@@ -14,7 +14,8 @@ uses
   {$ENDIF}
   ZXing.BarcodeFormat, ZXing.ReadResult, ZXing.ScanManager, FMX.DialogService,
   MobilePermissions.Model.Signature, MobilePermissions.Model.Dangerous,
-  MobilePermissions.Model.Standard, MobilePermissions.Component, unVenda;
+  MobilePermissions.Model.Standard, MobilePermissions.Component, unMensagem,
+  unFrameFundo;
 
 type
   TfrmCamera = class(TForm)
@@ -28,6 +29,7 @@ type
     procedure CameraSampleBufferReady(Sender: TObject; const ATime: TMediaTime);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     FLanternaAcesa: Boolean;
     FPermissionCamera: String;
@@ -36,21 +38,31 @@ type
     FFrameTake: Integer;
     procedure GetImage;
     function AppEvent(AAppEvent: TApplicationEvent; AContext: TObject): Boolean;
+    {$IFDEF ANDROID}
+    procedure imgCameraVoltarClick(Sender: TObject; const Point: TPoint);
+    {$ELSE}
+    procedure imgCameraVoltarClick(Sender: TObject);
+    {$ENDIF}
   public
-    procedure FecharCamera;
-    procedure AbrirCamera;
-    procedure AtualizarCamera;
+    Dlg: TfrmMensagem;
+    FLoading: TframeFundo;
+    function FecharCamera: Boolean;
+    function AbrirCamera: Boolean;
+    function AtualizarCamera: Boolean;
     procedure AtivarLanterna;
+    procedure PermissaoCamera;
   end;
 
 var
   frmCamera: TfrmCamera;
 
-implementation
 
+implementation
+uses
+  unVenda;
 {$R *.fmx}
 
-procedure TfrmCamera.AbrirCamera;
+function TfrmCamera.AbrirCamera: Boolean;
 begin
   if not MobilePermissions1.Dangerous.Camera then
   begin
@@ -69,9 +81,13 @@ begin
       Camera.FocusMode := FMX.Media.TFocusMode.ContinuousAutoFocus;
       Camera.Active := True;
     end);
+    Result := True;
   end
   else
+  begin
+    Result := False;
     TDialogService.ShowMessage('Não foi possível escanear o QRCode, as permissões da câmera são nécessárias');
+  end;
 end;
 
 function TfrmCamera.AppEvent(AAppEvent: TApplicationEvent;
@@ -102,8 +118,9 @@ begin
   end;
 end;
 
-procedure TfrmCamera.AtualizarCamera;
+function TfrmCamera.AtualizarCamera: Boolean;
 begin
+  Result := False;
   if Camera.Active = False then
   begin
     imgCamera.Bitmap.Clear(TAlphaColors.White);
@@ -121,8 +138,9 @@ begin
   TThread.Synchronize(TThread.CurrentThread, GetImage);
 end;
 
-procedure TfrmCamera.FecharCamera;
+function TfrmCamera.FecharCamera: Boolean;
 begin
+  Result := False;
   if not MobilePermissions1.Dangerous.Camera then
   begin
     MobilePermissions1.Dangerous.CAMERA := true;
@@ -131,12 +149,16 @@ begin
 
   Camera.Active := False;
   Camera.Quality := FMX.Media.TVideoCaptureQuality.LowQuality;
+  Result := True;
 end;
 
 procedure TfrmCamera.FormCreate(Sender: TObject);
 var
   AppEventSvc: IFMXApplicationEventService;
 begin
+  Dlg := TfrmMensagem.Create(Self);
+  FLoading := TframeFundo.Create(Self);
+  FLoading.Parent := Self;
   if TPlatformServices.Current.SupportsPlatformService
     (IFMXApplicationEventService, IInterface(AppEventSvc)) then
   begin
@@ -153,7 +175,18 @@ end;
 
 procedure TfrmCamera.FormDestroy(Sender: TObject);
 begin
+  FreeAndNil(FLoading);
+  FreeAndNil(Dlg);
   FScanManager.DisposeOf;
+end;
+
+procedure TfrmCamera.FormShow(Sender: TObject);
+begin
+  {$IFDEF ANDROID}
+  imgCameraVoltar.OnClick := imgCameraVoltarClick;
+  {$ELSE}
+  imgCameraVoltar.OnTap := imgCameraVoltarClick;
+  {$ENDIF}
 end;
 
 procedure TfrmCamera.GetImage;
@@ -217,6 +250,7 @@ begin
         begin
           if(ReadResult <> nil)  then
           begin
+            FecharCamera;
             Venda.BuscarCardapio(ReadResult.text);
           end;
 
@@ -231,4 +265,26 @@ begin
     end);
 end;
 
+{$IFDEF ANDROID}
+procedure TfrmCamera.imgCameraVoltarClick(Sender: TObject; const Point: TPoint);
+begin
+  FecharCamera;
+  Self.Close;
+end;
+procedure TfrmCamera.PermissaoCamera;
+begin
+  if not MobilePermissions1.Dangerous.Camera then
+  begin
+    MobilePermissions1.Dangerous.CAMERA := true;
+    MobilePermissions1.Apply;
+  end;
+end;
+
+{$ELSE}
+procedure TfrmCamera.imgCameraVoltarClick(Sender: TObject);
+begin
+  FecharCamera;
+  Self.Close;
+end;
+{$ENDIF}
 end.

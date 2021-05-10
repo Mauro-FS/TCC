@@ -4,23 +4,23 @@
     <Transaction>2019/07/19 23:16:12.000.174,=C:\Users\mauro\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
     <Transaction>2021/01/28 19:45:06.000.383,=C:\Users\mauro\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
     <Transaction>2021/01/28 19:48:01.000.142,=C:\Users\mauro\Documents\Embarcadero\Studio\Projects\Unit2.pas</Transaction>
-    <Transaction>2021/01/28 20:01:45.000.368,C:\Users\mauro\Documents\Embarcadero\Studio\Projects\Unit1.fmx=D:\Delphi\Servidor\unPrincipal.fmx</Transaction>
-    <Transaction>2021/01/28 20:01:45.000.368,C:\Users\mauro\Documents\Embarcadero\Studio\Projects\Unit1.pas=D:\Delphi\Servidor\unPrincipal.pas</Transaction>
-    <Transaction>2021/01/28 20:01:59.000.338,C:\Users\mauro\Documents\Embarcadero\Studio\Projects\Unit2.dfm=D:\Delphi\Servidor\unDM1.dfm</Transaction>
-    <Transaction>2021/01/28 20:01:59.000.338,C:\Users\mauro\Documents\Embarcadero\Studio\Projects\Unit2.pas=D:\Delphi\Servidor\unDM1.pas</Transaction>
-    <Transaction>2021/01/28 20:02:45.000.758,C:\Users\mauro\Documents\Embarcadero\Studio\Projects\Project1.dproj=D:\Delphi\Servidor\QuickTabServer.dproj</Transaction>
+    <Transaction>2021/01/28 20:01:45.000.368,D:\Delphi\Servidor\unPrincipal.fmx=C:\Users\mauro\Documents\Embarcadero\Studio\Projects\Unit1.fmx</Transaction>
+    <Transaction>2021/01/28 20:01:45.000.368,D:\Delphi\Servidor\unPrincipal.pas=C:\Users\mauro\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2021/01/28 20:01:59.000.338,D:\Delphi\Servidor\unDM1.dfm=C:\Users\mauro\Documents\Embarcadero\Studio\Projects\Unit2.dfm</Transaction>
+    <Transaction>2021/01/28 20:01:59.000.338,D:\Delphi\Servidor\unDM1.pas=C:\Users\mauro\Documents\Embarcadero\Studio\Projects\Unit2.pas</Transaction>
+    <Transaction>2021/01/28 20:02:45.000.758,D:\Delphi\Servidor\QuickTabServer.dproj=C:\Users\mauro\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
     <Transaction>2021/02/13 20:03:18.000.178,=D:\Delphi\Servidor\Unit1.pas</Transaction>
-    <Transaction>2021/02/13 22:37:04.000.657,D:\Delphi\Servidor\Unit1.fmx=D:\Delphi\Servidor\unFrameMesa.fmx</Transaction>
-    <Transaction>2021/02/13 22:37:04.000.657,D:\Delphi\Servidor\Unit1.pas=D:\Delphi\Servidor\unFrameMesa.pas</Transaction>
+    <Transaction>2021/02/13 22:37:04.000.657,D:\Delphi\Servidor\unFrameMesa.fmx=D:\Delphi\Servidor\Unit1.fmx</Transaction>
+    <Transaction>2021/02/13 22:37:04.000.657,D:\Delphi\Servidor\unFrameMesa.pas=D:\Delphi\Servidor\Unit1.pas</Transaction>
     <Transaction>2021/02/20 11:21:19.000.852,=D:\Delphi\Servidor\FMXDelphiZXIngQRCode.pas</Transaction>
     <Transaction>2021/03/01 21:05:30.000.618,=D:\Delphi\Servidor\Unit1.pas</Transaction>
     <Transaction>2021/03/01 21:05:47.000.137,=D:\Delphi\Servidor\Unit1.pas</Transaction>
-    <Transaction>2021/03/01 21:18:36.000.564,D:\Delphi\Servidor\Unit1.pas=D:\Delphi\Servidor\unMensagem.pas</Transaction>
-    <Transaction>2021/03/01 21:18:36.000.564,D:\Delphi\Servidor\Unit1.fmx=D:\Delphi\Servidor\unMensagem.fmx</Transaction>
+    <Transaction>2021/03/01 21:18:36.000.564,D:\Delphi\Servidor\unMensagem.pas=D:\Delphi\Servidor\Unit1.pas</Transaction>
+    <Transaction>2021/03/01 21:18:36.000.564,D:\Delphi\Servidor\unMensagem.fmx=D:\Delphi\Servidor\Unit1.fmx</Transaction>
     <Transaction>2021/03/09 22:30:20.000.599,=D:\Delphi\Servidor\Unit1.pas</Transaction>
-    <Transaction>2021/03/09 23:00:25.000.654,D:\Delphi\Servidor\Unit1.pas=D:\Delphi\Servidor\unUtils.pas</Transaction>
+    <Transaction>2021/03/09 23:00:25.000.654,D:\Delphi\Servidor\unUtils.pas=D:\Delphi\Servidor\Unit1.pas</Transaction>
   </Transactions>
 	<ActiveMobileDevice>
-		<NoProfile iOSSimulator="iPhone5" Android="" Android64=""/>
+		<NoProfile iOSSimulator="iPhone5" Android="0052509177" Android64="0052509177"/>
 	</ActiveMobileDevice>
 </BorlandProject>

@@ -44,6 +44,7 @@ end;
 
 function TframeFundo.Exibir(Mensagem: String): Boolean;
 begin
+  Self.Height := TForm(Parent).Height;
   if Mensagem.Trim = EmptyStr then
   begin
     FloatAnimar.Enabled := False;

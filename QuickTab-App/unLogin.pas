@@ -44,7 +44,7 @@ type
     lblCadSenha: TLabel;
     Layout3: TLayout;
     Label11: TLabel;
-    Label12: TLabel;
+    lblCadAcesse: TLabel;
     lblEmail: TLabel;
     lblCPF: TLabel;
     edtCadEmail: TEdit;
@@ -56,27 +56,19 @@ type
     Image2: TImage;
     Label10: TLabel;
     Label13: TLabel;
-    Rectangle3: TRectangle;
+    recAcessar: TRectangle;
     Label14: TLabel;
     Layout4: TLayout;
     Layout5: TLayout;
     Label15: TLabel;
-    Label16: TLabel;
+    lblCadastre: TLabel;
     Layout6: TLayout;
     lblEsqueceSenha: TLabel;
     lblAlterarSenha: TLabel;
-    procedure Label12Click(Sender: TObject);
-    procedure lblCadastreseClick(Sender: TObject);
     procedure edtCadCPFTyping(Sender: TObject);
-    procedure Rectangle3Click(Sender: TObject);
-    procedure Label16Click(Sender: TObject);
-    procedure recLoginClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure Label1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure recCadastrarClick(Sender: TObject);
-    procedure lblAlterarSenhaClick(Sender: TObject);
   private
     FLoading: TframeFundo;
     Dlg: TfrmMensagem;
@@ -85,10 +77,28 @@ type
     function VerificaCamposCadastro: Boolean;
     function VerificaCamposLogin: Boolean;
     function LimparCamposCadastro: Boolean;
+    {$IFDEF ANDROID}
+    procedure lblCadastreseClick(Sender: TObject; const Point: TPointF);
+    procedure recAcessarClick(Sender: TObject; const Point: TPointF);
+    procedure lblCadastreClick(Sender: TObject; const Point: TPointF);
+    procedure recLoginClick(Sender: TObject; const Point: TPointF);
+    procedure recCadastrarClick(Sender: TObject; const Point: TPointF);
+    procedure lblCadAcesseClick(Sender: TObject; const Point: TPointF);
+    procedure lblAlterarSenhaClick(Sender: TObject; const Point: TPointF);
+    {$ELSE}
+    procedure lblCadastreseClick(Sender: TObject);
+    procedure recAcessarClick(Sender: TObject);
+    procedure lblCadastreClick(Sender: TObject);
+    procedure recLoginClick(Sender: TObject);
+    procedure recCadastrarClick(Sender: TObject);
+    procedure lblCadAcesseClick(Sender: TObject);
+    procedure lblAlterarSenhaClick(Sender: TObject);
+    {$ENDIF}
   public
     ModoDark : Boolean;
     StatusBarColor : Cardinal;
     StatusBarTransparent : Boolean;
+    procedure TapOuClick;
   end;
 
 var
@@ -151,6 +161,7 @@ var
   LTask: ITask;
   Qry: TFDQuery;
 begin
+  TapOuClick;
   Qry := TFDQuery.Create(nil);
   FLoading.Fechar;
   LTask := TTask.Create(procedure
@@ -178,31 +189,91 @@ begin
 
   Qry.DisposeOf;
 end;
+{$IFDEF ANDROID}
 
-procedure TfrmLogin.Label12Click(Sender: TObject);
+procedure TfrmLogin.lblAlterarSenhaClick(Sender: TObject; const Point: TPointF);
+begin
+  frmAlterarSenha.Show;
+end;
+
+procedure TfrmLogin.lblCadAcesseClick(Sender: TObject; const Point: TPointF);
 begin
   LimparCamposCadastro;
   TabControl.ActiveTab := TabLogin;
 end;
 
-procedure TfrmLogin.Label16Click(Sender: TObject);
+procedure TfrmLogin.lblCadastreClick(Sender: TObject; const Point: TPointF);
 begin
   TabControl.ActiveTab := TabConfig;
 end;
 
-procedure TfrmLogin.Label1Click(Sender: TObject);
+procedure TfrmLogin.lblCadastreseClick(Sender: TObject; const Point: TPointF);
 begin
-  FLoading.Exibir('tester');
-  TTask.Run(
-    procedure
+  TabControl.ActiveTab := TabConfig;
+end;
+
+procedure TfrmLogin.recAcessarClick(Sender: TObject; const Point: TPointF);
+begin
+  TabControl.ActiveTab := TabLogin;
+end;
+
+procedure TfrmLogin.recCadastrarClick(Sender: TObject; const Point: TPointF);
+var
+  Erro: String;
+begin
+  if not VerificaCamposCadastro then
+    Exit;
+
+  FLoading.Exibir;
+  if not Venda.Cadastrar(Erro, edtCadUsuario.Text.Trim, edtCadSenha.Text.Trim,
+   edtCadEmail.Text.Trim, edtCadCPF.Text.Trim) then
+  begin
+    Dlg.Mensagem(Erro);
+  end
+  else
+    Dlg.Mensagem('Cadastro efetuado!');
+  Dlg.ShowModal(
+    procedure(ModalResult: TModalResult)
     begin
-       Sleep(3000);
-       TThread.Synchronize(nil,
-        procedure
-        begin
-          FLoading.Fechar;
-        end)
+      if Dlg.ModalResult = mrOk then
+        FLoading.Fechar;
+        TabControl.ActiveTab := TabLogin;
+        LimparCamposCadastro;
     end);
+end;
+
+procedure TfrmLogin.recLoginClick(Sender: TObject; const Point: TPointF);
+var
+  Erro: String;
+begin
+  if not VerificaCamposLogin then
+    Exit;
+  if not Venda.Acessar(Erro, edtEmailUsuario.Text.Trim, edtSenha.Text.Trim, Switch1.IsChecked) then
+  begin
+    FLoading.Exibir;
+    Dlg.Mensagem(Erro);
+    Dlg.ShowModal(
+    procedure(ModalResult: TModalResult)
+    begin
+      if Dlg.ModalResult = mrOk then
+        FLoading.Fechar;
+        Exit;
+    end);
+  end
+  else
+    frmPrincipal.Show;
+end;
+
+{$ELSE}
+procedure TfrmLogin.lblCadAcesseClick(Sender: TObject);
+begin
+  LimparCamposCadastro;
+  TabControl.ActiveTab := TabLogin;
+end;
+
+procedure TfrmLogin.lblCadastreClick(Sender: TObject);
+begin
+  TabControl.ActiveTab := TabConfig;
 end;
 
 procedure TfrmLogin.lblAlterarSenhaClick(Sender: TObject);
@@ -213,14 +284,6 @@ end;
 procedure TfrmLogin.lblCadastreseClick(Sender: TObject);
 begin
   TabControl.ActiveTab := TabConfig;
-end;
-
-function TfrmLogin.LimparCamposCadastro: Boolean;
-begin
-  edtCadUsuario.Text := EmptyStr;
-  edtCadCPF.Text := EmptyStr;
-  edtCadSenha.Text := EmptyStr;
-  edtCadEmail.Text := EmptyStr;
 end;
 
 procedure TfrmLogin.recCadastrarClick(Sender: TObject);
@@ -248,7 +311,7 @@ begin
     end);
 end;
 
-procedure TfrmLogin.Rectangle3Click(Sender: TObject);
+procedure TfrmLogin.recAcessarClick(Sender: TObject);
 begin
   TabControl.ActiveTab := TabLogin;
 end;
@@ -273,6 +336,36 @@ begin
   end
   else
     frmPrincipal.Show;
+end;
+{$ENDIF}
+
+function TfrmLogin.LimparCamposCadastro: Boolean;
+begin
+  edtCadUsuario.Text := EmptyStr;
+  edtCadCPF.Text := EmptyStr;
+  edtCadSenha.Text := EmptyStr;
+  edtCadEmail.Text := EmptyStr;
+end;
+
+procedure TfrmLogin.TapOuClick;
+begin
+  {$IFDEF ANDROID}
+  recAcessar.OnTap := recAcessarClick;
+  recLogin.OnTap := recLoginClick;
+  recCadastrar.OnTap := recCadastrarClick;
+  lblCadastrese.OnTap := lblCadastreseClick;
+  lblCadastre.OnTap  := lblCadastreseClick;
+  lblAlterarSenha.OnTap  := lblAlterarSenhaClick;
+  lblCadAcesse.OnTap := lblCadAcesseClick;
+  {$ELSE}
+  recAcessar.OnClick := recAcessarClick;
+  recLogin.OnClick := recLoginClick;
+  recCadastrar.OnClick := recCadastrarClick;
+  lblCadastrese.OnClick := lblCadastreseClick;
+  lblCadastre.OnClick  := lblCadastreseClick;
+  lblAlterarSenha.OnClick  := lblAlterarSenhaClick;
+  lblCadAcesse.OnClick := lblCadAcesseClick;
+  {$ENDIF}
 end;
 
 procedure TfrmLogin.TextColor(TextDark: boolean);

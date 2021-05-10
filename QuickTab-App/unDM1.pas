@@ -43,8 +43,8 @@ type
 
     //Empresa
     function ObterEmpresa(out Erro: String; out NomeEmpresa: String): Boolean;
-    function InserirEmpresa(out JSONObj: TJsonObject): Boolean;
-    function AtualizarEmpresa(out JSONObj: TJsonObject): Boolean;
+    function InserirEmpresa(NomeEmpresa, CNPJ, Endereco, Numero, CEP, Cidade, Estado: String; out Erro: String): Boolean;
+    function AtualizarEmpresa(NomeEmpresa, CNPJ, Endereco, Numero, CEP, Cidade, Estado: String; out Erro: String): Boolean;
     function RecuperarEmpresa(Qry: TFDQuery): Boolean;
     function BuscarEmpresa(CNPJ: String): Boolean;
 
@@ -99,10 +99,12 @@ var
   JSON: String;
   JSONObj: TJsonObject;
   Qry: TFDQuery;
+  teste: string;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     Result := False;
-    Erro := '';
+    Erro := 'Erro ao obter a empresa';
     JSONObj := TJSONObject.Create;
     Qry := TFDQuery.Create(nil);
     Qry.Connection := DM1.conn;
@@ -127,14 +129,50 @@ begin
       begin
         Result := True;
         if not BuscarEmpresa(JSONObj.GetValue('cnpj').ToString) then
-          Result := InserirEmpresa(JSONObj)
+        begin
+//          Erro := Erro + ' nomeempresa ' + JSONObj.GetValue('nomeempresa').Value;
+//          Erro := Erro + ' cnpj ' + JSONObj.GetValue('cnpj').Value;
+//          Erro := Erro + ' endereco ' + JSONObj.GetValue('endereco').Value;
+//          Erro := Erro + ' numero ' + JSONObj.GetValue('numero').Value;
+//          Erro := Erro + ' cep ' + JSONObj.GetValue('cep').Value;
+//          Erro := Erro + ' cidade ' + JSONObj.GetValue('cidade').Value;
+//          Erro := Erro + ' estado ' + JSONObj.GetValue('estado').Value;
+          Result := InserirEmpresa(
+           JSONObj.GetValue('nomeempresa').Value,
+           JSONObj.GetValue('cnpj').Value,
+           JSONObj.GetValue('endereco').Value,
+           JSONObj.GetValue('numero').Value,
+           JSONObj.GetValue('cep').Value,
+           JSONObj.GetValue('cidade').Value,
+           JSONObj.GetValue('estado').Value,
+           Erro);
+          if not Result then
+          begin
+            Erro := 'Erro ao inserir a empresa';
+
+          end;
+        end
         else
-          Result := AtualizarEmpresa(JSONObj);
+        begin
+          Result := AtualizarEmpresa(
+           JSONObj.GetValue('nomeempresa').Value,
+           JSONObj.GetValue('cnpj').Value,
+           JSONObj.GetValue('endereco').Value,
+           JSONObj.GetValue('numero').Value,
+           JSONObj.GetValue('cep').Value,
+           JSONObj.GetValue('cidade').Value,
+           JSONObj.GetValue('estado').Value,
+           Erro);
+          if not Result then
+            Erro := 'Erro ao atualizar a empresa';
+        end;
       end
       else
       begin
         Result := False;
         Erro := JSONObj.GetValue('mensagem').Value;
+        if Erro.Trim.IsEmpty then
+          Erro := 'Erro ao comunicar com o servidor';
       end;
     end;
   finally
@@ -147,6 +185,7 @@ end;
 
 function TDM1.ObterInfoPedido(Qry: TFDQuery): Boolean;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   Result := False;
   if not Assigned(Qry) then
     Qry := TFDQuery.Create(nil);
@@ -159,6 +198,7 @@ end;
 
 function TDM1.ObterInfoUsuario(out Qry: TFDQuery): Boolean;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   Result := False;
   if not Assigned(Qry) then
     Qry := TFDQuery.Create(nil);
@@ -177,6 +217,7 @@ function TDM1.ObterItensPedidoAtual(Qry: TFDQuery): Boolean;
 var
   LPedido: Integer;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   Result := False;
   if not Assigned(Qry) then
     Qry := TFDQuery.Create(nil);
@@ -201,6 +242,7 @@ var
   NroPedido: Integer;
   Qry : TFDQuery;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     Result := False;
     Erro := '';
@@ -261,6 +303,7 @@ function TDM1.PrimeiroAcesso: Boolean;
 var
   Qry : TFDQuery;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     Result := True;
     try
@@ -282,6 +325,7 @@ end;
 
 function TDM1.RecuperarEmpresa(Qry: TFDQuery): Boolean;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   Result := False;
   if not Assigned(Qry) then
     Qry := TFDQuery.Create(nil);
@@ -296,6 +340,7 @@ function TDM1.RemoverPedido(SeqPedido: Integer; out Erro: String): Boolean;
 var
   Qry : TFDQuery;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
   Result := False;
   try
@@ -326,6 +371,7 @@ var
   JSON: String;
   JSONObj: TJsonObject;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     Result := False;
     Erro := '';
@@ -368,6 +414,7 @@ function TDM1.StatusPedido(SeqPedido: Integer; out Status: String): Boolean;
 var
   Qry: TFDQuery;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     Result := False;
     Qry := TFDQuery.Create(nil);
@@ -393,6 +440,7 @@ var
   Qry: TFDQuery;
   LPedido : Integer;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     Result := False;
     Qry := TFDQuery.Create(nil);
@@ -423,6 +471,7 @@ function TDM1.VerificarQtdItensPedido(SeqPedido: Integer; out Qtd: Integer;
 var
   Qry: TFDQuery;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     try
       Qry := TFDQuery.Create(nil);
@@ -455,32 +504,36 @@ begin
   end;
 end;
 
-function TDM1.InserirEmpresa(out JSONObj: TJsonObject): Boolean;
+function TDM1.InserirEmpresa(NomeEmpresa, CNPJ, Endereco, Numero, CEP, Cidade, Estado: String; out Erro: String): Boolean;
 var
   Qry: TFDQuery;
 begin
-  try    
-    try   
+  {$ZEROBASEDSTRINGS OFF}
+  try
+    try
       Qry := TFDQuery.Create(nil);
       Qry.Connection := DM1.conn;
       Qry.SQL.Clear;
-      Qry.SQL.Add('insert into tb_empresa(nomeempresa, cnpj, endereco, numero, cep, cidade, estado, distancia) ');
-      Qry.SQL.Add('values(:nomeempresa, :cnpj, :endereco, :numero, :cep, :cidade, :estado, :distancia)');
-      Qry.ParamByName('nomeempresa').Value := JSONObj.GetValue('nomeempresa').Value;
-      Qry.ParamByName('cnpj').Value := JSONObj.GetValue('cnpj').Value;
-      Qry.ParamByName('endereco').Value := JSONObj.GetValue('endereco').Value;
-      Qry.ParamByName('numero').Value := JSONObj.GetValue('numero').Value;
-      Qry.ParamByName('cep').Value := JSONObj.GetValue('cep').Value;
-      Qry.ParamByName('cidade').Value := JSONObj.GetValue('cidade').Value;
-      Qry.ParamByName('estado').Value := JSONObj.GetValue('estado').Value;
-      Qry.ParamByName('distancia').Value := JSONObj.GetValue('distancia').Value;
+      Qry.SQL.Add('insert into tb_empresa(nomeempresa, cnpj, endereco, numero, cep, cidade, estado) ');
+      Qry.SQL.Add('values(:nomeempresa, :cnpj, :endereco, :numero, :cep, :cidade, :estado)');
+      Qry.ParamByName('nomeempresa').Value := NomeEmpresa;
+      Qry.ParamByName('cnpj').Value := CNPJ;
+      Qry.ParamByName('endereco').Value := Endereco;
+      Qry.ParamByName('numero').Value := Numero;
+      Qry.ParamByName('cep').Value := CEP;
+      Qry.ParamByName('cidade').Value := Cidade;
+      Qry.ParamByName('estado').Value := Estado;
       Qry.ExecSQL;
       Result := True
     finally
       Qry.DisposeOf;
     end;
   except
-    Result := False;
+    on E: Exception do
+    begin
+      Erro := E.Message;
+      Result := False;
+    end;
   end;
 end;
 
@@ -489,6 +542,7 @@ function TDM1.InserirNroPedido(SeqPedido: Integer; NroPedido: String;
 var
   Qry : TFDQuery;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     Result := False;
     try
@@ -517,6 +571,7 @@ var
   I: Integer;
   LMaxPedido: Integer;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     try
       LMaxPedido := 0;
@@ -591,6 +646,7 @@ procedure TDM1.ApagarCardapio;
 var
   Qry : TFDQuery;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     Qry := TFDQuery.Create(nil);
     Qry.Connection := DM1.conn;
@@ -602,10 +658,11 @@ begin
   end;
 end;
 
-function TDM1.AtualizarEmpresa(out JSONObj: TJsonObject): Boolean;
+function TDM1.AtualizarEmpresa(NomeEmpresa, CNPJ, Endereco, Numero, CEP, Cidade, Estado: String; out Erro: String): Boolean;
 var
   Qry : TFDQuery;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     Result := False;
     try
@@ -613,22 +670,25 @@ begin
       Qry.Connection := DM1.conn;
       Qry.SQL.Clear;
       Qry.SQL.Add('update tb_empresa set nomeempresa = :nomeempresa, cnpj = :cnpj, endereco = :endereco, ');
-      Qry.SQL.Add('numero = :numero, cep = :cep, cidade = :cidade, estado = :estado, distancia = :distancia');
-      Qry.ParamByName('nomeempresa').Value := JSONObj.GetValue('nomeempresa').Value;
-      Qry.ParamByName('cnpj').Value := JSONObj.GetValue('cnpj').Value;
-      Qry.ParamByName('endereco').Value := JSONObj.GetValue('endereco').Value;
-      Qry.ParamByName('numero').Value := JSONObj.GetValue('numero').Value;
-      Qry.ParamByName('cep').Value := JSONObj.GetValue('cep').Value;
-      Qry.ParamByName('cidade').Value := JSONObj.GetValue('cidade').Value;
-      Qry.ParamByName('estado').Value := JSONObj.GetValue('estado').Value;
-      Qry.ParamByName('distancia').Value := JSONObj.GetValue('distancia').Value;
+      Qry.SQL.Add('numero = :numero, cep = :cep, cidade = :cidade, estado = :estado');
+      Qry.ParamByName('nomeempresa').Value := NomeEmpresa;
+      Qry.ParamByName('cnpj').Value := CNPJ;
+      Qry.ParamByName('endereco').Value := Endereco;
+      Qry.ParamByName('numero').Value := Numero;
+      Qry.ParamByName('cep').Value := CEP;
+      Qry.ParamByName('cidade').Value := Cidade;
+      Qry.ParamByName('estado').Value := Estado;
       Qry.ExecSQL;
       Result := True;
     finally
       Qry.DisposeOf;
     end;
   except
-    Result := False;
+    on E: Exception do
+    begin
+      Erro := E.Message;
+      Result := False;
+    end;
   end;
 end;
 
@@ -639,6 +699,7 @@ var
   LPedido: Integer;
   I: Integer;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     try
       Result := False;
@@ -698,6 +759,7 @@ function TDM1.AtualizarSenhaUsuario(Email, Senha: String): Boolean;
 var
   Qry : TFDQuery;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     Result := False;
     try
@@ -733,6 +795,7 @@ var
   Qry : TFDQuery;
   NroPedido: Integer;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     Result := False;
     try
@@ -767,6 +830,7 @@ end;
 
 function TDM1.ObterCardapio(out Qry: TFDQuery): Boolean;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   Result := False;
   if not Assigned(Qry) then
     Qry := TFDQuery.Create(nil);
@@ -784,6 +848,7 @@ function TDM1.BuscarEmpresa(CNPJ: String): Boolean;
 var
   Qry: TFDQuery;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     Result := False;
     Qry := TFDQuery.Create(nil);
@@ -807,6 +872,7 @@ function TDM1.InserirCardapio(SeqProduto: Integer; Nome, Categoria: String;
 var
   Qry : TFDQuery;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   Result := False;
   try
     Qry := TFDQuery.Create(nil);
@@ -834,6 +900,7 @@ function TDM1.CadastrarUsuario(Nome, Senha, Email, CPF: String; Lembrar: Boolean
 var
   Qry: TFDQuery;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     Qry := TFDQuery.Create(nil);
     Qry.Connection := DM1.conn;
@@ -872,6 +939,7 @@ var
   Status: String;
   NroPedido: Integer;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     Result := False;
     Qry := TFDQuery.Create(nil);
@@ -947,6 +1015,7 @@ var
   Qry: TFDQuery;
   LPedido : Integer;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     Result := False;
     Qry := TFDQuery.Create(nil);
@@ -980,6 +1049,7 @@ var
   Status: String;
   NroPedido: Integer;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     Result := False;
     Qry := TFDQuery.Create(nil);
@@ -1061,6 +1131,7 @@ var
   LCount: Integer;
   LMaxItemBefore: Integer;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     Result := False;
     Qry := TFDQuery.Create(nil);
@@ -1211,6 +1282,7 @@ var
   LMesa: String;
   LPedido: Integer;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     FinalizarPedidosPendentes;
 
@@ -1326,6 +1398,7 @@ function TDM1.LembrarUsuario(Lembrar: Boolean): Boolean;
 var
   Qry : TFDQuery;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   try
     Result := False;
     try
@@ -1352,6 +1425,7 @@ function TDM1.ListarProduto(out JsonArray: TJSONArray;
 var
   Json : String;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   Erro := '';
   Result := False;
   try

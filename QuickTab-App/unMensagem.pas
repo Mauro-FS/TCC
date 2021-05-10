@@ -16,6 +16,7 @@ type
     lblAceitar: TLabel;
     lytMensagem: TLayout;
     lblMensagem: TLabel;
+    Layout1: TLayout;
     procedure recCancelarClick(Sender: TObject);
     procedure recAceitarClick(Sender: TObject);
   private

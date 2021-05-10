@@ -16,8 +16,6 @@ uses
   Androidapi.Helpers,
   Androidapi.JNI.JavaTypes,
   Androidapi.JNI.Os,
-  MobilePermissions.Model.Signature, MobilePermissions.Model.Dangerous,
-  MobilePermissions.Model.Standard, MobilePermissions.Component,
   {$ENDIF}
   ZXing.BarcodeFormat, ZXing.ReadResult, ZXing.ScanManager, FMX.DialogService,
   System.Sensors, System.Sensors.Components, unProduto, unMensagem,
@@ -84,20 +82,14 @@ type
     procedure lvwMenuItemClickEx(const Sender: TObject; ItemIndex: Integer;
       const LocalClickPos: TPointF; const ItemObject: TListItemDrawable);
     procedure FormDestroy(Sender: TObject);
-    procedure imgPerfilClick(Sender: TObject);
-    procedure imgMenuClick(Sender: TObject);
     procedure lvwPerfilItemClick(const Sender: TObject;
       const AItem: TListViewItem);
     procedure lvwMenuScrollViewChange(Sender: TObject);
-    procedure imgPedidoClick(Sender: TObject);
     procedure FormKeyUp(Sender: TObject; var Key: Word; var KeyChar: Char;
       Shift: TShiftState);
-    procedure imgQrCodeClick(Sender: TObject);
     procedure lvwPedidoItemClickEx(const Sender: TObject; ItemIndex: Integer;
       const LocalClickPos: TPointF; const ItemObject: TListItemDrawable);
     procedure TimerStatusPedidoTimer(Sender: TObject);
-    procedure recCancelarPedidoClick(Sender: TObject);
-    procedure recEnviarPedidoClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
     FframeCategoriasProdutos: TObjectList<TframeCategoria>;
@@ -107,8 +99,25 @@ type
     procedure AddItensPerfil(Titulo, Descricao: String);
     procedure MontarPedido;
     procedure CategoriaClick(Sender: TObject);
+    {$IFDEF ANDROID}
+    procedure imgPerfilClick(Sender: TObject; const Point: TPointF);
+    procedure imgMenuClick(Sender: TObject; const Point: TPointF);
+    procedure imgPedidoClick(Sender: TObject; const Point: TPointF);
+    procedure imgQrCodeClick(Sender: TObject; const Point: TPointF);
+    procedure recCancelarPedidoClick(Sender: TObject; const Point: TPointF);
+    procedure AtualizarPedidoClick(Sender: TObject; const Point: TPointF);
+    procedure FinalizarPedidoClick(Sender: TObject; const Point: TPointF);
+    procedure recEnviarPedidoClick(Sender: TObject; const Point: TPointF);
+    {$ELSE}
+    procedure imgPerfilClick(Sender: TObject);
+    procedure imgMenuClick(Sender: TObject);
+    procedure imgPedidoClick(Sender: TObject);
+    procedure imgQrCodeClick(Sender: TObject);
+    procedure recCancelarPedidoClick(Sender: TObject);
     procedure AtualizarPedidoClick(Sender: TObject);
     procedure FinalizarPedidoClick(Sender: TObject);
+    procedure recEnviarPedidoClick(Sender: TObject);
+    {$ENDIF}
   public
     Dlg: TfrmMensagem;
     FLoading: TframeFundo;
@@ -122,6 +131,11 @@ type
     function DescricaoCategoria(AValue: String): String;
     function AddItemPedido(Quantidade, Nome, Valor: String): Boolean;
     function NovosItensPedido: Boolean;
+    function ClickOuTap: Boolean;
+    procedure CancelarPedido;
+    procedure AtualizarPedido;
+    procedure FinalizarPedido;
+    procedure EnviarPedido;
   end;
 
 var
@@ -185,7 +199,7 @@ begin
       Texto.Text := Valor;
       Img := TListItemImage(Objects.FindDrawable('Image4'));
     {$IF DEFINED(iOS) or DEFINED(ANDROID)}
-      Bmp.LoadFromFile(TPath.Combine(TPath.GetDocumentsPath, 'Fechar.png'));
+      Bmp.LoadFromFile(System.IOUtils.TPath.Combine(System.IOUtils.TPath.GetDocumentsPath, 'Fechar.png'));
     {$ELSE}
       Bmp.LoadFromFile(TDirectory.GetParent(GetCurrentDir) + PathDelim +  'resources\imagens\Fechar.png');
     {$ENDIF}
@@ -334,6 +348,7 @@ procedure TfrmPrincipal.CategoriaClick(Sender: TObject);
 var
   I: Integer;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   for I := 0 to 10 do
   begin
     if FframeItensMenu.Items[I].TagString = TframeCategoria(Sender).TagString then
@@ -345,11 +360,31 @@ begin
 
 end;
 
+function TfrmPrincipal.ClickOuTap: Boolean;
+begin
+  {$IFDEF ANDROID}
+    recEnviarPedido.OnTap := recEnviarPedidoClick;
+    recCancelarPedido.OnTap := recCancelarPedidoClick;
+    imgQrCode.OnTap := imgQrCodeClick;
+    imgPedido.OnTap := imgPedidoClick;
+    imgPerfil.OnTap := imgPerfilClick;
+    imgMenu.OnTap := imgMenuClick;
+  {$ELSE}
+    recEnviarPedido.OnClick := recEnviarPedidoClick;
+    recCancelarPedido.OnClick := recCancelarPedidoClick;
+    imgQrCode.OnClick := imgQrCodeClick;
+    imgPedido.OnClick := imgPedidoClick;
+    imgPerfil.OnClick := imgPerfilClick;
+    imgMenu.OnClick := imgMenuClick;
+  {$ENDIF}
+end;
+
 procedure TfrmPrincipal.CriarCategorias;
 var
   I: Integer;
   Categorias: TStringList;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   Categorias := TStringList.Create;
   Venda.GetCategorias(Categorias);
   if Categorias.Count > 0 then
@@ -366,7 +401,7 @@ begin
         Items[I].OnClick := CategoriaClick;
 
        {$IF DEFINED(iOS) or DEFINED(ANDROID)}
-        Items[I].imgCategoria.Bitmap.LoadFromFile(Path.Combine(TPath.GetDocumentsPath, Categorias[I] + '.png'));
+        Items[I].imgCategoria.Bitmap.LoadFromFile(System.IOUtils.TPath.Combine(System.IOUtils.TPath.GetDocumentsPath, Categorias[I] + '.png'));
        {$ELSE}
         Items[I].imgCategoria.Bitmap.LoadFromFile(TDirectory.GetParent(GetCurrentDir) + PathDelim + 'resources\imagens\' + Categorias[I] +'.png' );
        {$ENDIF}
@@ -378,7 +413,123 @@ begin
   FreeAndNil(Categorias);
 end;
 
+{$IFDEF ANDROID}
+
+procedure TfrmPrincipal.FinalizarPedidoClick(Sender: TObject;
+  const Point: TPointF);
+begin
+  FinalizarPedido;
+end;
+
+procedure TfrmPrincipal.imgMenuClick(Sender: TObject; const Point: TPointF);
+begin
+  tabControlPrincipal.ActiveTab := tabMenu;
+  TimerStatusPedido.Enabled := False;
+end;
+
+procedure TfrmPrincipal.imgPedidoClick(Sender: TObject; const Point: TPointF);
+begin
+  MontarPedido;
+  tabControlPrincipal.ActiveTab := tabPedido;
+  NovosItensPedido;
+  if DM1.VerificarPedidoAtivo then
+  begin
+    TabBtnPedido.ActiveTab := TabBtnPedidoFeito;
+    Venda.AtualizarStatusPedido;
+    TimerStatusPedido.Enabled := True;
+    NovosItensPedido;
+  end;
+end;
+
+procedure TfrmPrincipal.imgPerfilClick(Sender: TObject; const Point: TPointF);
+begin
+  tabControlPrincipal.ActiveTab := tabPerfil;
+  TimerStatusPedido.Enabled := False;
+end;
+
+procedure TfrmPrincipal.imgQrCodeClick(Sender: TObject; const Point: TPointF);
+begin
+  with frmCamera do
+  begin
+    if FecharCamera then
+     if AbrirCamera then
+       Show;
+  end;
+end;
+
+procedure TfrmPrincipal.recCancelarPedidoClick(Sender: TObject;
+  const Point: TPointF);
+begin
+  CancelarPedido;
+end;
+
+procedure TfrmPrincipal.recEnviarPedidoClick(Sender: TObject;
+  const Point: TPointF);
+begin
+  EnviarPedido;
+end;
+
+procedure TfrmPrincipal.AtualizarPedidoClick(Sender: TObject;
+  const Point: TPointF);
+begin
+  AtualizarPedido;
+end;
+
+{$ELSE}
+procedure TfrmPrincipal.imgMenuClick(Sender: TObject);
+begin
+  tabControlPrincipal.ActiveTab := tabMenu;
+  TimerStatusPedido.Enabled := False;
+end;
+
+procedure TfrmPrincipal.imgPedidoClick(Sender: TObject);
+begin
+  MontarPedido;
+  tabControlPrincipal.ActiveTab := tabPedido;
+  NovosItensPedido;
+  if DM1.VerificarPedidoAtivo then
+  begin
+    TabBtnPedido.ActiveTab := TabBtnPedidoFeito;
+    Venda.AtualizarStatusPedido;
+    TimerStatusPedido.Enabled := True;
+    NovosItensPedido;
+  end;
+end;
+
+procedure TfrmPrincipal.imgPerfilClick(Sender: TObject);
+begin
+  tabControlPrincipal.ActiveTab := tabPerfil;
+  TimerStatusPedido.Enabled := False;
+end;
+
+procedure TfrmPrincipal.imgQrCodeClick(Sender: TObject);
+begin
+  Venda.BuscarCardapio('localhost:8082|001');
+end;
+
+procedure TfrmPrincipal.recCancelarPedidoClick(Sender: TObject);
+begin
+  CancelarPedido;
+end;
+
+procedure TfrmPrincipal.recEnviarPedidoClick(Sender: TObject);
+begin
+  EnviarPedido;
+end;
+
 procedure TfrmPrincipal.AtualizarPedidoClick(Sender: TObject);
+begin
+  AtualizarPedido;
+end;
+
+procedure TfrmPrincipal.FinalizarPedidoClick(Sender: TObject);
+begin
+  FinalizarPedido;
+end;
+{$ENDIF}
+
+
+procedure TfrmPrincipal.AtualizarPedido;
 var
   Erro: String;
 begin
@@ -432,7 +583,88 @@ begin
   end).Start;
 end;
 
-procedure TfrmPrincipal.FinalizarPedidoClick(Sender: TObject);
+procedure TfrmPrincipal.EnviarPedido;
+var
+  Erro: String;
+  NroPedido: String;
+begin
+  {$ZEROBASEDSTRINGS OFF}
+  TimerStatusPedido.Enabled := False;
+  if lvwPedido.Items.Count = 0 then
+  begin
+    FLoading.Exibir;
+    Dlg.Mensagem('Adicione itens ao pedido antes de fazer o pedido!');
+    Dlg.ShowModal(
+    procedure(ModalResult: TModalResult)
+    begin
+      if Dlg.ModalResult = mrOk then
+        FLoading.Fechar;
+    end);
+    Exit;
+  end;
+
+  FLoading.Fechar;
+  FLoading.Exibir('Fazendo o Pedido');
+
+  TThread.CreateAnonymousThread(procedure
+  begin
+    try
+      if not Venda.AdicionarPedido(Erro, NroPedido) then
+      begin
+        TThread.Synchronize(nil,
+        procedure
+        begin
+          FLoading.Exibir;
+          Dlg.Mensagem(Erro);
+          Dlg.ShowModal(
+          procedure(ModalResult: TModalResult)
+          begin
+            if Dlg.ModalResult = mrOk then
+            begin
+              FLoading.Fechar;
+              TimerStatusPedido.Enabled := True;
+            end;
+          end);
+        end);
+      end
+      else
+      begin
+        TThread.Synchronize(nil,
+        procedure
+        begin
+          lblNroPedido.Text := 'Nro. Pedido: ' + NroPedido;
+          lblVlrTotPedido.Text := 'R$' + FormatFloat('0.00', Venda.Pedido.GetTotalPedido);
+          Venda.AtualizarStatusPedido;
+          TabBtnPedido.ActiveTab := TabBtnPedidoFeito;
+          TimerStatusPedido.Enabled := True;
+          FLoading.Fechar;
+        end);
+      end;
+    except
+    on E: Exception do
+      begin
+        TThread.Synchronize(nil,
+        procedure
+        begin
+          FLoading.Fechar;
+          FLoading.Exibir;
+          Dlg.Mensagem(E.Message);
+          Dlg.ShowModal(
+          procedure(ModalResult: TModalResult)
+          begin
+            if Dlg.ModalResult = mrOk then
+            begin
+              FLoading.Fechar;
+              TimerStatusPedido.Enabled := True;
+            end;
+          end);
+        end);
+      end;
+    end;
+  end).Start;
+end;
+
+procedure TfrmPrincipal.FinalizarPedido;
 var
   Erro: String;
 begin
@@ -499,16 +731,75 @@ begin
   end).Start;
 end;
 
+procedure TfrmPrincipal.CancelarPedido;
+var
+  Erro: String;
+begin
+  TimerStatusPedido.Enabled := False;
+  FLoading.Exibir('Cancelando o Pedido');
+  TThread.CreateAnonymousThread(procedure
+  begin
+    try
+      if not Venda.CancelarPedido(Erro) then
+      begin
+        TThread.Synchronize(nil,
+        procedure
+        begin
+          Dlg.Mensagem(Erro);
+          Dlg.ShowModal(
+          procedure(ModalResult: TModalResult)
+          begin
+            if Dlg.ModalResult = mrOk then
+            begin
+              FLoading.Fechar;
+              TimerStatusPedido.Enabled := True;
+            end;
+          end);
+        end);
+      end
+      else
+      begin
+        TThread.Synchronize(nil,
+        procedure
+        begin
+          PedidoCancelado;
+          FLoading.Fechar;
+        end);
+      end;
+    except
+    on E: Exception do
+      begin
+        TThread.Synchronize(nil,
+        procedure
+        begin
+          FLoading.Fechar;
+          FLoading.Exibir;
+          Dlg.Mensagem(E.Message);
+          Dlg.ShowModal(
+          procedure(ModalResult: TModalResult)
+          begin
+            if Dlg.ModalResult = mrOk then
+            begin
+              FLoading.Fechar;
+              TimerStatusPedido.Enabled := True;
+            end;
+          end);
+        end);
+      end;
+    end;
+  end).Start;
+end;
+
 procedure TfrmPrincipal.FormCreate(Sender: TObject);
 var
   C: TControl;
   AppEventSvc: IFMXApplicationEventService;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   Dlg := TfrmMensagem.Create(frmPrincipal);
   FLoading := TframeFundo.Create(Self);
   FLoading.Parent := Self;
   AddItensPerfil('Meus Dados', 'Minhas informações pessoais');
-  AddItensPerfil('Histórico', 'Estabelecimentos já visitados');
   AddItensPerfil('Onboarding', 'Como usar o app');
   AddItensPerfil('Ajuda', 'Solicite um atendente');
 
@@ -583,6 +874,7 @@ begin
         procedure
         begin
           FLoading.Fechar;
+          frmCamera.PermissaoCamera;
         end);
       end
       else
@@ -591,6 +883,7 @@ begin
         procedure
         begin
           FLoading.Fechar;
+          frmCamera.PermissaoCamera;
         end);
       end;
     except
@@ -614,45 +907,7 @@ begin
   end).Start;
 end;
 
-procedure TfrmPrincipal.imgMenuClick(Sender: TObject);
-begin
-  tabControlPrincipal.ActiveTab := tabMenu;
-  TimerStatusPedido.Enabled := False;
-end;
 
-procedure TfrmPrincipal.imgPedidoClick(Sender: TObject);
-begin
-  MontarPedido;
-  tabControlPrincipal.ActiveTab := tabPedido;
-  NovosItensPedido;
-  if DM1.VerificarPedidoAtivo then
-  begin
-    TabBtnPedido.ActiveTab := TabBtnPedidoFeito;
-    Venda.AtualizarStatusPedido;
-    TimerStatusPedido.Enabled := True;
-    NovosItensPedido;
-  end;
-end;
-
-procedure TfrmPrincipal.imgPerfilClick(Sender: TObject);
-begin
-  tabControlPrincipal.ActiveTab := tabPerfil;
-  TimerStatusPedido.Enabled := False;
-end;
-
-procedure TfrmPrincipal.imgQrCodeClick(Sender: TObject);
-begin
-{$IFDEF ANDROID}
-  with frmCamera do
-  begin
-    Show;
-    FecharCamera;
-    AbrirCamera;
-  end;
-{$ELSE}
-  Venda.BuscarCardapio('http://localhost:8082|001');
-{$ENDIF}
-end;
 
 procedure TfrmPrincipal.lvwMenuItemClickEx(const Sender: TObject;
   ItemIndex: Integer; const LocalClickPos: TPointF;
@@ -814,6 +1069,7 @@ procedure TfrmPrincipal.CriarItemCardapio;
 var
   I: Integer;
 begin
+  {$ZEROBASEDSTRINGS OFF}
   lvwMenu.Visible := False;
   for I := 0 to Venda.ProdutosCardapio.Count - 1 do
   begin
@@ -831,6 +1087,13 @@ begin
       Items[I].lblPrecoProduto.Text := 'R$' + FormatFloat('0.00', Venda.ProdutosCardapio.Items[I].Preco);
       Items[I].Tag := I;
       Items[I].TagFloat := Venda.ProdutosCardapio.Items[I].IDProduto;
+      {$IFDEF ANDROID}
+      Items[I].OnTap := Items[I].FrameClick;
+      Items[I].imgAddProduto.OnTap := Items[I].imgAddProdutoClick;
+      {$ELSE}
+      Items[I].OnClick := Items[I].FrameClick;
+      Items[I].imgAddProduto.OnClick := Items[I].imgAddProdutoClick;
+      {$ENDIF}
 
       vsbMenu.AddObject(FframeItensMenu.Items[I]);
     end;
@@ -887,6 +1150,7 @@ var
   I: Integer;
 begin
   try
+    {$ZEROBASEDSTRINGS OFF}
     lvwPedido.Items.Clear;
     lvwPedido.BeginUpdate;
 
@@ -912,154 +1176,22 @@ begin
     if Venda.Pedido.ListaProdutos.Count > QtdPedido then
     begin
       lblFinalizarPedido.Text := 'Atualizar';
+      {$IFDEF ANDROID}
+      recFinalizarPedido.OnTap := AtualizarPedidoClick;
+      {$ELSE}
       recFinalizarPedido.OnClick := AtualizarPedidoClick;
+      {$ENDIF}
     end
     else
     begin
       lblFinalizarPedido.Text := 'Finalizar';
+      {$IFDEF ANDROID}
+      recFinalizarPedido.OnTap := FinalizarPedidoClick;
+      {$ELSE}
       recFinalizarPedido.OnClick := FinalizarPedidoClick;
+      {$ENDIF}
     end;
   end;
-
-end;
-
-procedure TfrmPrincipal.recCancelarPedidoClick(Sender: TObject);
-var
-  Erro: String;
-begin
-  TimerStatusPedido.Enabled := False;
-  FLoading.Exibir('Cancelando o Pedido');
-  TThread.CreateAnonymousThread(procedure
-  begin
-    try
-      if not Venda.CancelarPedido(Erro) then
-      begin
-        TThread.Synchronize(nil,
-        procedure
-        begin
-          Dlg.Mensagem(Erro);
-          Dlg.ShowModal(
-          procedure(ModalResult: TModalResult)
-          begin
-            if Dlg.ModalResult = mrOk then
-            begin
-              FLoading.Fechar;
-              TimerStatusPedido.Enabled := True;
-            end;
-          end);
-        end);
-      end
-      else
-      begin
-        TThread.Synchronize(nil,
-        procedure
-        begin
-          PedidoCancelado;
-          FLoading.Fechar;
-        end);
-      end;
-    except
-    on E: Exception do
-      begin
-        TThread.Synchronize(nil,
-        procedure
-        begin
-          FLoading.Fechar;
-          FLoading.Exibir;
-          Dlg.Mensagem(E.Message);
-          Dlg.ShowModal(
-          procedure(ModalResult: TModalResult)
-          begin
-            if Dlg.ModalResult = mrOk then
-            begin
-              FLoading.Fechar;
-              TimerStatusPedido.Enabled := True;
-            end;
-          end);
-        end);
-      end;
-    end;
-  end).Start;
-end;
-
-procedure TfrmPrincipal.recEnviarPedidoClick(Sender: TObject);
-var
-  Erro: String;
-  NroPedido: String;
-begin
-  TimerStatusPedido.Enabled := False;
-  if lvwPedido.Items.Count = 0 then
-  begin
-    FLoading.Exibir;
-    Dlg.Mensagem('Adicione itens ao pedido antes de fazer o pedido!');
-    Dlg.ShowModal(
-    procedure(ModalResult: TModalResult)
-    begin
-      if Dlg.ModalResult = mrOk then
-        FLoading.Fechar;
-    end);
-    Exit;
-  end;
-
-  FLoading.Fechar;
-  FLoading.Exibir('Fazendo o Pedido');
-
-  TThread.CreateAnonymousThread(procedure
-  begin
-    try
-      if not Venda.AdicionarPedido(Erro, NroPedido) then
-      begin
-        TThread.Synchronize(nil,
-        procedure
-        begin
-          FLoading.Exibir;
-          Dlg.Mensagem(Erro);
-          Dlg.ShowModal(
-          procedure(ModalResult: TModalResult)
-          begin
-            if Dlg.ModalResult = mrOk then
-            begin
-              FLoading.Fechar;
-              TimerStatusPedido.Enabled := True;
-            end;
-          end);
-        end);
-      end
-      else
-      begin
-        TThread.Synchronize(nil,
-        procedure
-        begin
-          lblNroPedido.Text := 'Nro. Pedido: ' + NroPedido;
-          lblVlrTotPedido.Text := 'R$' + FormatFloat('0.00', Venda.Pedido.GetTotalPedido);
-          Venda.AtualizarStatusPedido;
-          TabBtnPedido.ActiveTab := TabBtnPedidoFeito;
-          TimerStatusPedido.Enabled := True;
-          FLoading.Fechar;
-        end);
-      end;
-    except
-    on E: Exception do
-      begin
-        TThread.Synchronize(nil,
-        procedure
-        begin
-          FLoading.Fechar;
-          FLoading.Exibir;
-          Dlg.Mensagem(E.Message);
-          Dlg.ShowModal(
-          procedure(ModalResult: TModalResult)
-          begin
-            if Dlg.ModalResult = mrOk then
-            begin
-              FLoading.Fechar;
-              TimerStatusPedido.Enabled := True;
-            end;
-          end);
-        end);
-      end;
-    end;
-  end).Start;
 
 end;
 

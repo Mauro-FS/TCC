@@ -18,7 +18,6 @@ uses
   unVenda in 'unVenda.pas',
   unMeusDados in 'unMeusDados.pas' {frmMeusDados},
   unOnboarding in 'unOnboarding.pas' {frmOnboarding},
-  unHistorico in 'unHistorico.pas' {frmHistorico},
   unDM1 in 'unDM1.pas' {DM1: TDataModule},
   unToast in 'unToast.pas',
   unNotificacao in 'unNotificacao.pas',
@@ -38,7 +37,6 @@ begin
   Application.CreateForm(TfrmProdutoDetalhado, frmProdutoDetalhado);
   Application.CreateForm(TfrmMeusDados, frmMeusDados);
   Application.CreateForm(TfrmOnboarding, frmOnboarding);
-  Application.CreateForm(TfrmHistorico, frmHistorico);
   Application.CreateForm(TDM1, DM1);
   Application.CreateForm(TfrmCamera, frmCamera);
   Application.CreateForm(TfrmMensagem, frmMensagem);

@@ -12,7 +12,7 @@ object DM1: TDM1
     Top = 16
   end
   object HTTPBasicAuthenticator: THTTPBasicAuthenticator
-    Left = 120
+    Left = 128
     Top = 80
   end
   object qry_config: TFDQuery
@@ -36,10 +36,10 @@ object DM1: TDM1
     Authenticator = HTTPBasicAuthenticator
     Accept = 'application/json, text/plain; q=0.9, text/html;q=0.8,'
     AcceptCharset = 'utf-8, *;q=0.8'
-    BaseURL = 'http://localhost:8082'
+    BaseURL = 'http://192.168.15.2:8082'
     Params = <>
     RaiseExceptionOn500 = False
-    Left = 24
+    Left = 32
     Top = 80
   end
   object FDQuery1: TFDQuery

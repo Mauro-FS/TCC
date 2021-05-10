@@ -37,7 +37,7 @@ object frameFundo: TframeFundo
         Stroke.Thickness = 3.000000000000000000
         EndAngle = -90.000000000000000000
         object FloatAnimar: TFloatAnimation
-          Duration = 0.699999988079071100
+          Duration = 0.699999988079071000
           Loop = True
           PropertyName = 'RotationAngle'
           StartValue = 0.000000000000000000
@@ -57,7 +57,7 @@ object frameFundo: TframeFundo
         Size.Width = 305.000000000000000000
         Size.Height = 75.000000000000000000
         Size.PlatformDefault = False
-        TextSettings.Font.Size = 18.000000000000000000
+        TextSettings.Font.Size = 20.000000000000000000
         TextSettings.FontColor = xFF404852
         TextSettings.HorzAlign = Center
         Text = 'lblMensagem'

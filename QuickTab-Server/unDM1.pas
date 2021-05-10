@@ -49,8 +49,8 @@ type
     function TrocarStatusMesa(Mesa: String): Boolean;
     function ObterStatusMesa(Mesa: String): String;
     function ObterMesas(var Mesas: TFDQuery): Boolean;
-    function AdicionarConfiguracoes(NomeEmpresa, CNPJ, Endereco, Numero, CEP, Cidade, Estado, Distancia: String): Boolean;
-    function AtualizarConfiguracoes(NomeEmpresa, CNPJ, Endereco, Numero, CEP, Cidade, Estado, Distancia: String): Boolean;
+    function AdicionarConfiguracoes(NomeEmpresa, CNPJ, Endereco, Numero, CEP, Cidade, Estado: String): Boolean;
+    function AtualizarConfiguracoes(NomeEmpresa, CNPJ, Endereco, Numero, CEP, Cidade, Estado: String): Boolean;
     function AtualizarInfoServidor(PortaServidor: String): Boolean;
     function ChecarConfiguracoes: Boolean;
     function BuscarConfiguracoes(var Qry: TFDQuery): Boolean;
@@ -200,7 +200,7 @@ begin
 end;
 
 function TDM1.AtualizarConfiguracoes(NomeEmpresa, CNPJ, Endereco, Numero, CEP, Cidade,
-  Estado, Distancia: String): Boolean;
+  Estado: String): Boolean;
 var
   Qry : TFDQuery;
 begin
@@ -210,7 +210,7 @@ begin
     Qry.Connection := DM1.conn;
     Qry.SQL.Clear;
     Qry.SQL.Add('update tb_empresa set nomeempresa = :nomeempresa, cnpj = :cnpj, endereco = :endereco, ');
-    Qry.SQL.Add('numero = :numero, cep = :cep, cidade = :cidade, estado = :estado, distancia = :distancia');
+    Qry.SQL.Add('numero = :numero, cep = :cep, cidade = :cidade, estado = :estado');
     Qry.ParamByName('nomeempresa').Value := NomeEmpresa;
     Qry.ParamByName('cnpj').Value := CNPJ;
     Qry.ParamByName('endereco').Value := Endereco;
@@ -218,7 +218,6 @@ begin
     Qry.ParamByName('cep').Value := CEP.ToInteger;
     Qry.ParamByName('cidade').Value := Cidade;
     Qry.ParamByName('estado').Value := Estado;
-    Qry.ParamByName('distancia').Value := Distancia.ToInteger;
     Qry.ExecSQL;
   finally
     Result := True;
@@ -964,7 +963,6 @@ begin
       Json.AddPair('cep', Qry.FieldByName('cep').AsString);
       Json.AddPair('cidade', Qry.FieldByName('cidade').AsString);
       Json.AddPair('estado', Qry.FieldByName('estado').AsString);
-      Json.AddPair('distancia', Qry.FieldByName('distancia').AsString);
       Json.AddPair('portaservidor', Qry.FieldByName('portaservidor').AsString);
 
     except on ex:exception do
@@ -1323,7 +1321,7 @@ begin
 end;
 
 function TDM1.AdicionarConfiguracoes(NomeEmpresa, CNPJ, Endereco, Numero, CEP, Cidade,
-  Estado, Distancia: String): Boolean;
+  Estado: String): Boolean;
 var
   Qry : TFDQuery;
 begin
@@ -1332,8 +1330,8 @@ begin
     Qry := TFDQuery.Create(nil);
     Qry.Connection := DM1.conn;
     Qry.SQL.Clear;
-    Qry.SQL.Add('insert into tb_empresa(nomeempresa, cnpj, endereco, numero, cep, cidade, estado, distancia) ');
-    Qry.SQL.Add('values(:nomeempresa, :cnpj, :endereco, :numero, :cep, :cidade, :estado, :distancia)');
+    Qry.SQL.Add('insert into tb_empresa(nomeempresa, cnpj, endereco, numero, cep, cidade, estado) ');
+    Qry.SQL.Add('values(:nomeempresa, :cnpj, :endereco, :numero, :cep, :cidade, :estado)');
     Qry.ParamByName('nomeempresa').Value := NomeEmpresa;
     Qry.ParamByName('cnpj').Value := CNPJ;
     Qry.ParamByName('endereco').Value := Endereco;
@@ -1341,7 +1339,6 @@ begin
     Qry.ParamByName('cep').Value := CEP.ToInteger;
     Qry.ParamByName('cidade').Value := Cidade;
     Qry.ParamByName('estado').Value := Estado;
-    Qry.ParamByName('distancia').Value := Distancia.ToInteger;
     Qry.ExecSQL;
   finally
     Result := True;
