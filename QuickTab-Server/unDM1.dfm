@@ -140,8 +140,22 @@ object DM1: TDM1
             TypeObject = toParam
             ObjectDirection = odIN
             ObjectValue = ovString
-            ParamName = 'seqpedidoitem'
+            ParamName = 'seqproduto'
             Encoded = False
+          end
+          item
+            TypeObject = toParam
+            ObjectDirection = odINOUT
+            ObjectValue = ovString
+            ParamName = 'quantidade'
+            Encoded = True
+          end
+          item
+            TypeObject = toParam
+            ObjectDirection = odINOUT
+            ObjectValue = ovString
+            ParamName = 'observacao'
+            Encoded = True
           end>
         JsonMode = jmPureJSON
         Name = 'ExcluirProdutoPedido'

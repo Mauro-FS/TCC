@@ -25,7 +25,8 @@ uses
   unFrameItemMenu in 'unFrameItemMenu.pas' {frameItemMenu: TFrame},
   unMensagem in 'unMensagem.pas' {frmMensagem},
   unAlterarSenha in 'unAlterarSenha.pas' {frmAlterarSenha},
-  unFrameFundo in 'unFrameFundo.pas' {frameFundo: TFrame};
+  unFrameFundo in 'unFrameFundo.pas' {frameFundo: TFrame},
+  unObservacao in 'unObservacao.pas' {frmObservacao};
 
 {$R *.res}
 
@@ -41,5 +42,6 @@ begin
   Application.CreateForm(TfrmCamera, frmCamera);
   Application.CreateForm(TfrmMensagem, frmMensagem);
   Application.CreateForm(TfrmAlterarSenha, frmAlterarSenha);
+  Application.CreateForm(TfrmObservacao, frmObservacao);
   Application.Run;
 end.

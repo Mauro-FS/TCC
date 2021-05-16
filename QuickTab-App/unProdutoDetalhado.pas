@@ -5,8 +5,8 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Layouts,
-  FMX.Controls.Presentation, FMX.StdCtrls, FMX.Objects,
-  System.Generics.Collections, unVenda, unToast;
+  FMX.Controls.Presentation, FMX.StdCtrls, FMX.Objects, unObservacao,
+  System.Generics.Collections, unVenda, unToast, FMX.Edit;
 
 type
   TfrmProdutoDetalhado = class(TForm)
@@ -31,10 +31,15 @@ type
     Layout2: TLayout;
     lblVlrTotal: TLabel;
     lytFundoProd: TLayout;
+    Layout1: TLayout;
+    Layout3: TLayout;
+    Layout4: TLayout;
+    edtObservacao: TEdit;
     procedure imgPDVoltarClick(Sender: TObject);
     procedure imgAddItemClick(Sender: TObject);
     procedure imgRemoveProdutoClick(Sender: TObject);
     procedure recLAddProdDetalhadoClick(Sender: TObject);
+    procedure edtObservacaoClick(Sender: TObject);
   private
     FIdProduto: Integer;
     function Calcular: Currency;
@@ -69,6 +74,18 @@ begin
   lblQtdProduto.Text := '1';
   lblVlrTotal.Text := 'R$' + FormatFloat('0.00', Venda.ProdutosCardapio.Items[IdProduto].VlrTotal);
   Self.Show;
+end;
+
+procedure TfrmProdutoDetalhado.edtObservacaoClick(Sender: TObject);
+var
+  Observacao: String;
+begin
+  edtObservacao.Enabled := False;
+  Observacao := unObservacao.AbrirObservacao(edtObservacao.Text);
+  Observacao := frmObservacao.FObervacao;
+  Venda.ProdutosCardapio.Items[FIdProduto].Observacao := Observacao;
+  edtObservacao.Text := Observacao;
+  edtObservacao.Enabled := True;
 end;
 
 procedure TfrmProdutoDetalhado.imgPDVoltarClick(Sender: TObject);
@@ -107,13 +124,14 @@ begin
   lblQtdProduto.Tag := 1;
   lblQtdProduto.TagFloat := 1;
   lblQtdProduto.Text := '1';
+  edtObservacao.Text := EmptyStr;
 end;
 
 procedure TfrmProdutoDetalhado.recLAddProdDetalhadoClick(Sender: TObject);
 begin
   if not Assigned(Venda.Pedido) then
     Venda.Pedido := TPedido.Create;
-  if Venda.Pedido.AdicionarProduto(FIdProduto, lblQtdProduto.Tag) then
+  if Venda.Pedido.AdicionarProduto(FIdProduto, lblQtdProduto.Tag, edtObservacao.Text) then
   begin
     Venda.AtualizarTotalPedido;
     TToast.ToastMessage(frmPrincipal, 'Produto Adicionado');

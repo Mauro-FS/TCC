@@ -65,6 +65,8 @@ type
     function VerificarQtdItensPedido(SeqPedido: Integer; out Qtd: Integer; out Erro: String): Boolean;
     function StatusPedido(SeqPedido: Integer; out Status: String): Boolean;
     function ObterInfoPedido(Qry: TFDQuery): Boolean;
+    function RemoverItemPedidoLocal(SeqProduto, Quantidade: Integer; Observacao: String; out Erro: String): Boolean;
+    function VerificarItemPedidoLocal(SeqProduto, Quantidade: Integer; Observacao: String; out Erro: String): Boolean;
 
     //Pedido remoto
     function CriarPedido(out Erro: String; out NroPedido: String): Boolean;
@@ -73,6 +75,7 @@ type
     function CancelarPedido(SeqPedido: Integer; out Erro: String): Boolean;
     function AtualizarPedido(SeqPedido: Integer; out Erro: String): Boolean;
     function RemoverPedido(SeqPedido: Integer; out Erro: String): Boolean;
+    function RemoverItemPedidoRemoto(SeqProduto, Quantidade: Integer; Observacao: String; out Erro: String): Boolean;
 
     //Outros
     function SolicitarAtendente(out Erro: String; Mesa: String): Boolean;
@@ -333,7 +336,182 @@ begin
 
   Qry.SQL.Clear;
   Qry.SQL.Add('select * from tb_empresa');
-  Qry.Active := True;   
+  Qry.Active := True;
+end;
+
+function TDM1.RemoverItemPedidoRemoto(SeqProduto, Quantidade: Integer; Observacao: String; out Erro: String): Boolean;
+var
+  Qry : TFDQuery;
+  SeqPedido: Integer;
+  NroPedido: Integer;
+  JSON: String;
+  JSONObj: TJsonObject;
+  Status: String;
+begin
+  {$ZEROBASEDSTRINGS OFF}
+  try
+    Result := False;
+    try
+
+      JSONObj := TJSONObject.Create;
+      Qry := TFDQuery.Create(nil);
+      Qry.Connection := DM1.conn;
+      Qry.Active := False;
+      Qry.SQL.Clear;
+      Qry.SQL.Add('select max(seqpedido) as seqpedido, nropedido from tb_pedido');
+      Qry.Active := True;
+
+      if not (Qry.FieldByName('seqpedido').Value > 0) then
+      begin
+        Erro := 'Não foi possível encontrar o pedido';
+        Exit;
+      end;
+
+      SeqPedido := Qry.FieldByName('seqpedido').Value;
+      NroPedido := Qry.FieldByName('nropedido').Value;
+
+      Qry.SQL.Clear;
+      Qry.SQL.Add('select * from tb_pedidoitem where seqpedido = :seqpedido ');
+      Qry.SQL.Add('and seqproduto = :seqproduto and quantidade = :quantidade ');
+      Qry.SQL.Add('and observacao = :observacao');
+      Qry.ParamByName('seqpedido').Value := SeqPedido;
+      Qry.ParamByName('seqproduto').Value := SeqProduto;
+      Qry.ParamByName('quantidade').Value := Quantidade;
+      Qry.ParamByName('observacao').Value := Observacao;
+      Qry.Active := True;
+
+      if not (Qry.RecordCount > 0) then
+      begin
+        Erro := 'Não foi possível remover o item';
+        Exit;
+      end;
+
+      if NroPedido > 0 then
+      begin
+        with RequestExcluirProdutoPedido do
+        begin
+          Params.Clear;
+          AddParameter('seqpedido', NroPedido.ToString, TRESTRequestParameterKind.pkGETorPOST);
+          AddParameter('seqproduto', IntToStr(SeqProduto), TRESTRequestParameterKind.pkGETorPOST);
+          AddParameter('quantidade', IntToStr(Quantidade), TRESTRequestParameterKind.pkGETorPOST);
+          AddParameter('observacao', Observacao, TRESTRequestParameterKind.pkGETorPOST);
+          Execute;
+        end;
+
+        if RequestExcluirProdutoPedido.Response.StatusCode <> 200 then
+        begin
+          Result := False;
+          Erro := 'Erro ao remover o item do pedido: ' + RequestExcluirProdutoPedido.Response.StatusCode.ToString;
+        end
+        else
+        begin
+          JSON := RequestExcluirProdutoPedido.Response.JSONValue.ToString;
+          JSONObj := TJSONObject.ParseJSONValue(TEncoding.UTF8.GetBytes(JSON), 0) as TJSONObject;
+
+          if JSONObj.GetValue('retorno').Value = 'OK' then
+          begin
+            Status := JSONObj.GetValue('status').Value;
+            if Status <> 'P' then
+            begin
+              Result := False;
+              Erro := 'Não foi possível remover o item do pedido';
+            end
+            else
+            begin
+              Qry.SQL.Clear;
+              Qry.SQL.Add('delete from tb_pedidoitem where seqpedido = :seqpedido ');
+              Qry.SQL.Add('and seqproduto = :seqproduto and quantidade = :quantidade ');
+              Qry.SQL.Add('and observacao = :observacao');
+              Qry.ParamByName('seqpedido').Value := SeqPedido;
+              Qry.ParamByName('seqproduto').Value := SeqProduto;
+              Qry.ParamByName('quantidade').Value := Quantidade;
+              Qry.ParamByName('observacao').Value := Observacao;
+              Qry.ExecSQL;
+            end;
+          end
+          else
+          begin
+            Result := False;
+            Erro := JSONObj.GetValue('mensagem').Value;
+          end;
+        end;
+      end
+      else
+      begin
+        Qry.SQL.Clear;
+        Qry.SQL.Add('delete from tb_pedidoitem where seqpedido = :seqpedido ');
+        Qry.SQL.Add('and seqproduto = :seqproduto and quantidade = :quantidade ');
+        Qry.SQL.Add('and observacao = :observacao');
+        Qry.ParamByName('seqpedido').Value := SeqPedido;
+        Qry.ParamByName('seqproduto').Value := SeqProduto;
+        Qry.ParamByName('quantidade').Value := Quantidade;
+        Qry.ParamByName('observacao').Value := Observacao;
+        Qry.ExecSQL;
+      end;
+
+      Result := True;
+    finally
+      Json := EmptyStr;
+      FreeAndNil(JSONObj);
+      Qry.DisposeOf;
+    end;
+  except
+    Erro := 'Erro ao remover o pedido!';
+    Result := False;
+    Json := EmptyStr;
+    FreeAndNil(JSONObj);
+    Qry.DisposeOf;
+  end;
+end;
+
+function TDM1.RemoverItemPedidoLocal(SeqProduto, Quantidade: Integer;
+  Observacao: String; out Erro: String): Boolean;
+var
+  Qry : TFDQuery;
+  SeqPedido: Integer;
+  NroPedido: Integer;
+begin
+  {$ZEROBASEDSTRINGS OFF}
+  try
+    Result := False;
+    try
+
+      Qry := TFDQuery.Create(nil);
+      Qry.Connection := DM1.conn;
+      Qry.Active := False;
+      Qry.SQL.Clear;
+      Qry.SQL.Add('select max(seqpedido) as seqpedido, nropedido from tb_pedido');
+      Qry.Active := True;
+
+      if not (Qry.FieldByName('seqpedido').Value > 0) then
+      begin
+        Erro := 'Não foi possível encontrar o pedido';
+        Exit;
+      end;
+
+      SeqPedido := Qry.FieldByName('seqpedido').Value;
+
+      if not VerificarItemPedidoLocal(SeqProduto,Quantidade,Observacao, Erro) then
+      begin
+        if Erro = 'Não foi encontrado o produto' then
+        begin
+          Exit;
+        end;
+      end;
+
+      if RemoverItemPedidoRemoto(SeqProduto,Quantidade,Observacao, Erro) then
+      begin
+        Result := True;
+      end;
+
+    except
+      Erro := 'Erro ao remover o pedido!';
+      Result := False;
+      Qry.DisposeOf;
+    end;
+  finally
+    Qry.DisposeOf;
+  end;
 end;
 
 function TDM1.RemoverPedido(SeqPedido: Integer; out Erro: String): Boolean;
@@ -393,7 +571,6 @@ begin
     begin
       JSON := RequestObterEmpresa.Response.JSONValue.ToString;
       JSONObj := TJSONObject.ParseJSONValue(TEncoding.UTF8.GetBytes(JSON), 0) as TJSONObject;
-      JSONObj := TJSONObject.ParseJSONValue(TEncoding.UTF8.GetBytes(JSON), 0) as TJSONObject;
 
       if JSONObj.GetValue('retorno').Value = 'OK' then
       begin
@@ -430,6 +607,58 @@ begin
       Result := True;
     end;
 
+  finally
+    Qry.DisposeOf;
+  end;
+end;
+
+function TDM1.VerificarItemPedidoLocal(SeqProduto, Quantidade: Integer;
+  Observacao: String; out Erro: String): Boolean;
+var
+  Qry : TFDQuery;
+  SeqPedido: Integer;
+begin
+  {$ZEROBASEDSTRINGS OFF}
+  try
+    Result := False;
+    try
+
+      Qry := TFDQuery.Create(nil);
+      Qry.Connection := DM1.conn;
+      Qry.Active := False;
+      Qry.SQL.Clear;
+      Qry.SQL.Add('select max(seqpedido) as seqpedido, nropedido from tb_pedido');
+      Qry.Active := True;
+
+      if not (Qry.FieldByName('seqpedido').Value > 0) then
+      begin
+        Erro := 'Não foi possível encontrar o pedido';
+        Exit;
+      end;
+
+      SeqPedido := Qry.FieldByName('seqpedido').Value;
+
+      Qry.SQL.Clear;
+      Qry.SQL.Add('select * from tb_pedidoitem where seqpedido = :seqpedido ');
+      Qry.SQL.Add('and seqproduto = :seqproduto and quantidade = :quantidade ');
+      Qry.SQL.Add('and observacao = :observacao');
+      Qry.ParamByName('seqpedido').Value := SeqPedido;
+      Qry.ParamByName('seqproduto').Value := SeqProduto;
+      Qry.ParamByName('quantidade').Value := Quantidade;
+      Qry.ParamByName('observacao').Value := Observacao;
+      Qry.Active := True;
+
+      if not (Qry.RecordCount > 0) then
+      begin
+        Erro := 'Não foi encontrado o produto';
+        Exit;
+      end;
+      Result := True;
+    except
+      Erro := 'Erro ao encontrar o pedido!';
+      Result := False;
+      Qry.DisposeOf;
+    end;
   finally
     Qry.DisposeOf;
   end;

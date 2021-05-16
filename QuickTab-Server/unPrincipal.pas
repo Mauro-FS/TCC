@@ -131,7 +131,7 @@ type
     lblDetalhesPedido: TLabel;
     lvwProdutosPedido: TListView;
     Layout22: TLayout;
-    Timer1: TTimer;
+    TimerAtendente: TTimer;
     Rectangle2: TRectangle;
     Layout4: TLayout;
     Layout2: TLayout;
@@ -173,7 +173,7 @@ type
     procedure lblConfigServidorClick(Sender: TObject);
     procedure lvwPedidosRecebidosItemClick(const Sender: TObject;
       const AItem: TListViewItem);
-    procedure Timer1Timer(Sender: TObject);
+    procedure TimerAtendenteTimer(Sender: TObject);
     procedure recConfirmarPedidoClick(Sender: TObject);
     procedure recCancelarPedidoClick(Sender: TObject);
     procedure recFinalizarPedidoClick(Sender: TObject);
@@ -190,6 +190,7 @@ type
     procedure AnimarClick(Objeto: TObject);
     procedure FinalizaAnimacao(Sender: TObject);
   public
+    AtendenteSolicitado: TStringList;
     procedure CriarMesas;
     function CriarAbaMesa: String;
     function CriarCategorias: Boolean;
@@ -206,6 +207,7 @@ type
     function AtualizarPedido(Mesa, Status, ID: String): Boolean;
     function GetPedidos: Boolean;
     function ListarProdutosPedido: Boolean;
+    function SolicitarAtendente(Mesa: String): Boolean;
   end;
 
 var
@@ -389,8 +391,6 @@ begin
         lvwProdutosPedido.BeginUpdate;
         for I := 0 to Qry.RecordCount - 1 do
         begin
-
-//          Qry.Fields.
 
           Item := lvwProdutosPedido.Items.Add;
           with Item do
@@ -578,6 +578,7 @@ end;
 
 procedure TfrmPrincipal.FormCreate(Sender: TObject);
 begin
+  AtendenteSolicitado := TStringList.Create;
   FframeMesas := TObjectList<TframeMesa>.Create;
   FIPLocal := GetIPLocal;
   Dlg := TfrmMensagem.Create(frmPrincipal);
@@ -591,6 +592,8 @@ begin
   FframeMesas.DisposeOf;
   lvwProdutos.Items.Clear;
   imgProduto := nil;
+  AtendenteSolicitado.Clear;
+  FreeAndNil(AtendenteSolicitado);
 end;
 
 procedure TfrmPrincipal.FormShow(Sender: TObject);
@@ -1348,12 +1351,35 @@ begin
     Label1.Text := 'Servidor Inativo';
 end;
 
-procedure TfrmPrincipal.Timer1Timer(Sender: TObject);
+procedure TfrmPrincipal.TimerAtendenteTimer(Sender: TObject);
+var
+  I: Integer;
 begin
-  if WithinPastHours(Now, Now, 12) then
+  if AtendenteSolicitado.Count > 0 then
   begin
-    // atualizar a lista de pedidos a cada 1 hora removendo pedido antigos
+    TimerAtendente.Enabled := False;
+    I := AtendenteSolicitado.Count - 1;
+    SolicitarAtendente(AtendenteSolicitado[I].Trim)
   end;
+end;
+
+function TfrmPrincipal.SolicitarAtendente(Mesa: String): Boolean;
+begin
+  Dlg.Mensagem('Atendente solicitado na mesa '+ Mesa);
+  Dlg.Position := TFormPosition.OwnerFormCenter;
+  Dlg.ShowModal(
+  procedure(ModalResult: TModalResult)
+  begin
+    with DM1 do
+    begin
+      if ModalResult = mrOK then
+      begin
+        AtendenteSolicitado.Delete(AtendenteSolicitado.Count - 1);
+        TimerAtendente.Enabled := True;
+      end;
+    end;
+  end);
+  Dlg.Close;
 end;
 
 function TfrmPrincipal.VerificaAbas: Boolean;

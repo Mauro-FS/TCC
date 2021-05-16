@@ -19,7 +19,7 @@ uses
   {$ENDIF}
   ZXing.BarcodeFormat, ZXing.ReadResult, ZXing.ScanManager, FMX.DialogService,
   System.Sensors, System.Sensors.Components, unProduto, unMensagem,
-  unFrameFundo;
+  unFrameFundo, unToast;
 
 type
   TfrmPrincipal = class(TForm)
@@ -215,8 +215,7 @@ end;
 
 function TfrmPrincipal.PedidoCancelado: Boolean;
 begin
-  lblStatusPedido.Text := 'Status';
-  lblNroPedido.Text := 'Nro. Pedido';
+  lblStatusPedido.Text := '';
   lblVlrTotPedido.Text := 'R$0,00';
   TabBtnPedido.ActiveTab := TabBtnFazerPedido;
   tabControlPrincipal.ActiveTab := tabMenu;
@@ -225,9 +224,8 @@ end;
 
 function TfrmPrincipal.PedidoFinalizado: Boolean;
 begin
-  lblNroPedido.Text := 'Nro. Pedido';
   lblVlrTotPedido.Text := 'R$0,00';
-  lblStatusPedido.Text := 'Status';
+  lblStatusPedido.Text := '';
   TabBtnPedido.ActiveTab := TabBtnFazerPedido;
   frmPrincipal.lblCardapioPlaceHolder.Visible := True;
   lblNomeEmpresa.Text := EmptyStr;
@@ -473,6 +471,7 @@ procedure TfrmPrincipal.AtualizarPedidoClick(Sender: TObject;
   const Point: TPointF);
 begin
   AtualizarPedido;
+  NovosItensPedido;
 end;
 
 {$ELSE}
@@ -481,6 +480,7 @@ begin
   tabControlPrincipal.ActiveTab := tabMenu;
   TimerStatusPedido.Enabled := False;
 end;
+
 
 procedure TfrmPrincipal.imgPedidoClick(Sender: TObject);
 begin
@@ -586,7 +586,6 @@ end;
 procedure TfrmPrincipal.EnviarPedido;
 var
   Erro: String;
-  NroPedido: String;
 begin
   {$ZEROBASEDSTRINGS OFF}
   TimerStatusPedido.Enabled := False;
@@ -607,6 +606,8 @@ begin
   FLoading.Exibir('Fazendo o Pedido');
 
   TThread.CreateAnonymousThread(procedure
+  var
+    NroPedido: String;
   begin
     try
       if not Venda.AdicionarPedido(Erro, NroPedido) then
@@ -632,7 +633,6 @@ begin
         TThread.Synchronize(nil,
         procedure
         begin
-          lblNroPedido.Text := 'Nro. Pedido: ' + NroPedido;
           lblVlrTotPedido.Text := 'R$' + FormatFloat('0.00', Venda.Pedido.GetTotalPedido);
           Venda.AtualizarStatusPedido;
           TabBtnPedido.ActiveTab := TabBtnPedidoFeito;
@@ -848,7 +848,7 @@ end;
 
 procedure TfrmPrincipal.FormShow(Sender: TObject);
 begin
-
+  ClickOuTap;
   FLoading.Fechar;
 
   TThread.CreateAnonymousThread(procedure
@@ -906,8 +906,6 @@ begin
     end;
   end).Start;
 end;
-
-
 
 procedure TfrmPrincipal.lvwMenuItemClickEx(const Sender: TObject;
   ItemIndex: Integer; const LocalClickPos: TPointF;
@@ -1000,12 +998,31 @@ end;
 procedure TfrmPrincipal.lvwPedidoItemClickEx(const Sender: TObject;
   ItemIndex: Integer; const LocalClickPos: TPointF;
   const ItemObject: TListItemDrawable);
+var
+  Erro: String;
 begin
+  TimerStatusPedido.Enabled := False;
   if ItemObject.Name = 'Image4' then
   begin
     with Venda do
     begin
-      if Pedido.DeletarProduto(ItemIndex) then
+      if not (Pedido.Status = 'P') then
+      begin
+        FLoading.Fechar;
+        FLoading.Exibir;
+        Dlg.Mensagem('O Produto já está em preparo');
+        Dlg.ShowModal(
+        procedure(ModalResult: TModalResult)
+        begin
+          if Dlg.ModalResult = mrOk then
+          begin
+            FLoading.Fechar;
+          end;
+          TimerStatusPedido.Enabled := True;
+        end);
+        Exit;
+      end;
+      if Pedido.DeletarProduto(ItemIndex, Erro) then
       begin
         lvwPedido.Items.Delete(ItemIndex);
         Venda.AtualizarTotalPedido;
@@ -1031,8 +1048,23 @@ begin
   else
   if AItem.TagString = 'Ajuda' then
   begin
-    if DM1.SolicitarAtendente(Mensagem, Venda.Pedido.Mesa.ToString ) then
-    // enviar solicitação de atendente no servidor, se ok exibir um toast
+    if not DM1.SolicitarAtendente(Mensagem, Venda.Mesa) then
+    begin
+      FLoading.Fechar;
+      FLoading.Exibir;
+      Dlg.Mensagem(Mensagem);
+      Dlg.ShowModal(
+      procedure(ModalResult: TModalResult)
+      begin
+        if Dlg.ModalResult = mrOk then
+        begin
+          FLoading.Fechar;
+          TimerStatusPedido.Enabled := True;
+        end;
+      end);
+    end
+    else
+      TToast.ToastMessage(frmPrincipal, 'Atendente solicitado', TAlignLayout.Top, $FFE5B33A );
   end;
 
 end;
@@ -1175,7 +1207,7 @@ begin
   begin
     if Venda.Pedido.ListaProdutos.Count > QtdPedido then
     begin
-      lblFinalizarPedido.Text := 'Atualizar';
+      lblFinalizarPedido.Text := 'Incluir';
       {$IFDEF ANDROID}
       recFinalizarPedido.OnTap := AtualizarPedidoClick;
       {$ELSE}
@@ -1204,7 +1236,7 @@ function TfrmPrincipal.ResetarInterface: Boolean;
 var
   I: Integer;
 begin
-  lblNroPedido.Text := 'Nro. Pedido: ';
+  frmPrincipal.lblStatusPedido.Text := '';
   lblVlrTotPedido.Text := '0,00';
   TabBtnPedido.ActiveTab := TabBtnFazerPedido;
   tabControlPrincipal.ActiveTab := tabMenu;

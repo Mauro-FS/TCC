@@ -496,6 +496,10 @@
             <FormType>fmx</FormType>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
+        <DCCReference Include="unObservacao.pas">
+            <Form>frmObservacao</Form>
+            <FormType>fmx</FormType>
+        </DCCReference>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -1080,6 +1084,11 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="Android64\Debug\strings.xml" Configuration="Debug" Class="Android_Strings">
+                    <Platform Name="Android64">
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="resources\imagens\Prato1.png" Configuration="Debug" Class="File">
                     <Platform Name="Android">
                         <RemoteDir>.\assets\internal\</RemoteDir>
@@ -1090,11 +1099,6 @@
                 <DeployFile LocalName="Android\Debug\styles-v21.xml" Configuration="Debug" Class="AndroidSplashStylesV21">
                     <Platform Name="Android">
                         <RemoteName>styles.xml</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="Android64\Debug\strings.xml" Configuration="Debug" Class="Android_Strings">
-                    <Platform Name="Android64">
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

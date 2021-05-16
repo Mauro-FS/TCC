@@ -572,9 +572,9 @@ begin
       Result := Json.ToString;
     end;
   finally
-    Json.DisposeOf;
+    FreeAndNil(Json);
     Qry.DisposeOf;
-    JSONValue.DisposeOf;
+    FreeAndNil(JSONValue);
   end;
 end;
 
@@ -622,7 +622,7 @@ begin
     Result := Json.ToString;
   finally
     Qry.DisposeOf;
-    Json.DisposeOf;
+    FreeAndNil(Json);
   end;
 
 end;
@@ -645,6 +645,7 @@ begin
     Qry := TFDQuery.Create(nil);
     Qry.Connection := DM1.conn;
     Json := TJsonObject.Create;
+    JSONArray := TJSONArray.Create;
     JSONValue := TJSONValue.Create;
     try
       if (Params.ItemsString['cpf'].AsString = '') or
@@ -741,9 +742,10 @@ begin
       Result := Json.ToString;
     end;
   finally
-    Json.DisposeOf;
+    FreeAndNil(Json);
     Qry.DisposeOf;
-    JSONValue.DisposeOf;
+    FreeAndNil(JSONValue);
+    FreeAndNil(JSONArray);// teste
   end;
 end;
 
@@ -800,68 +802,103 @@ procedure TDM1.DWEventsEventsExcluirProdutoPedidoReplyEvent(
 var
   Json : TJsonObject;
   Qry : TFDQuery;
+  Pedido: Integer;
+  Produto: Integer;
 begin
   try
-    Json := TJsonObject.Create;
-    Qry := TFDQuery.Create(nil);
-    Qry.Connection := DM1.conn;
-
-    // Validar parametros...
-    if (Params.ItemsString['seqpedido'].AsString = '') or
-       (Params.ItemsString['seqpedidoitem'].AsString = '') then
-    begin
-      Json.AddPair('retorno', 'Parametros não informados');
-      Result := Json.ToString;
-      Exit;
-    end;
-
     try
+      Json := TJsonObject.Create;
+      Qry := TFDQuery.Create(nil);
+      Qry.Connection := DM1.conn;
+
+      // Validar parametros...
+      if (Params.ItemsString['seqpedido'].AsString = '') or
+         (Params.ItemsString['seqproduto'].AsString = '') or
+         (Params.ItemsString['quantidade'].AsString = '') then
+      begin
+        Json.AddPair('retorno', 'Erro');
+        Json.AddPair('mensagem', 'Parametros não informados');
+        Result := Json.ToString;
+        Exit;
+      end;
+
+
       Qry.Active := False;
       Qry.SQL.Clear;
-      Qry.SQL.Add('select * from tb_pedido where seqpedido = :seqpedido');
+      Qry.SQL.Add('select * from tb_pedidoitem where seqpedido = :seqpedido ');
+      Qry.SQL.Add('and seqproduto = :seqproduto and quantidade = :quantidade ');
+      Qry.SQL.Add('and observacao = :observacao');
+      Qry.ParamByName('seqpedido').Value := Params.ItemsString['seqpedido'].AsString;
+      Qry.ParamByName('seqproduto').Value := Params.ItemsString['seqproduto'].AsString;
+      Qry.ParamByName('quantidade').Value := Params.ItemsString['quantidade'].AsString;
+      Qry.ParamByName('observacao').Value := Params.ItemsString['observacao'].AsString;
       Qry.Active := True;
-      if (Qry.RecordCount > 0) then
+      if not (Qry.RecordCount > 0) then
       begin
-        if (Qry.FieldByName('status').AsString = 'F') then
-        begin
-          Json.AddPair('retorno', 'Erro');
-          Json.AddPair('mensagem', 'Pedido fechado, não é possível excluir o produto');
-          Result := Json.ToString;
-          Exit;
-        end;
-
-        if (Qry.FieldByName('status').AsString = 'C') then
-        begin
-          Json.AddPair('retorno', 'Erro');
-          Json.AddPair('mensagem', 'Pedido cancelado, não é possível excluir o produto');
-          Result := Json.ToString;
-          Exit;
-        end;
+        Json.AddPair('retorno', 'Erro');
+        Json.AddPair('mensagem', 'Produto não encontrado');
+        Exit;
       end;
+
+
+      if (Qry.FieldByName('status').AsString = 'A') then
+      begin
+        Json.AddPair('retorno', 'Erro');
+        Json.AddPair('mensagem', 'Pedido em andamento, não é possível excluir o produto');
+        Result := Json.ToString;
+        Exit;
+      end;
+
+      if (Qry.FieldByName('status').AsString = 'F') then
+      begin
+        Json.AddPair('retorno', 'Erro');
+        Json.AddPair('mensagem', 'Pedido fechado, não é possível excluir o produto');
+        Result := Json.ToString;
+        Exit;
+      end;
+
+      if (Qry.FieldByName('status').AsString = 'C') then
+      begin
+        Json.AddPair('retorno', 'Erro');
+        Json.AddPair('mensagem', 'Pedido cancelado, não é possível excluir o produto');
+        Result := Json.ToString;
+        Exit;
+      end;
+
+      Pedido := Qry.FieldByName('seqpedido').Value;
+      Produto := Qry.FieldByName('seqpedidoitem').Value;
 
       Qry.Active := False;
       Qry.SQL.Clear;
       Qry.SQL.Add('delete from tb_pedidoitem where seqpedido = :seqpedido and ');
       Qry.SQL.Add('seqpedidoitem = :seqpedidoitem ');
-      Qry.ParamByName('seqpedido').Value := Params.ItemsString['seqpedido'].AsString;
-      Qry.ParamByName('seqpedidoitem').Value := Params.ItemsString['seqpedidoitem'].AsString;
+      Qry.ParamByName('seqpedido').Value := Pedido;
+      Qry.ParamByName('seqpedidoitem').Value := Produto;
       Qry.ExecSQL;
 
       Json.AddPair('retorno', 'OK');
       Json.AddPair('mensagem', 'Produto removido com sucesso');
 
-    except on ex:exception do
-    begin
-      Json.AddPair('retorno', 'Erro');
-      Json.AddPair('mensagem', ex.Message);
-    end;
-    end;
+      frmPrincipal.GetPedidos;
+      frmPrincipal.ListarProdutosPedido;
 
+      Result := Json.ToString;
+
+    finally
+      Qry.DisposeOf;
+      Json.DisposeOf;
+    end;
+  except on ex:exception do
+  begin
+    Json.AddPair('retorno', 'Erro');
+    Json.AddPair('mensagem', ex.Message);
     Result := Json.ToString;
+    if Assigned(Qry) then
+      Qry.DisposeOf;
+    if Assigned(Json) then
+      Json.DisposeOf;
+  end;
 
-  finally
-    Qry.DisposeOf;
-    Json.DisposeOf;
   end;
 end;
 
@@ -896,8 +933,9 @@ begin
       Result := 'Erro';
     end;
   finally
-    Json.DisposeOf;
     Qry.DisposeOf;
+    Json.Clear;
+    FreeAndNil(Json);
   end;
 end;
 
@@ -916,7 +954,7 @@ begin
 
       Qry.Active := false;
       Qry.SQL.Clear;
-      Qry.SQL.Add('select * from tb_produto order by categoria asc');
+      Qry.SQL.Add('select * from tb_produto where status = ''A'' order by categoria asc');
       Qry.Active := True;
 
       Json.LoadFromDataset('', Qry, False, jmPureJSON);
@@ -925,7 +963,7 @@ begin
       Result := 'Erro';
     end;
   finally
-    Json.DisposeOf;
+    FreeAndNil(Json);
     Qry.DisposeOf;
   end;
 end;
@@ -976,7 +1014,7 @@ begin
 
   finally
     Qry.DisposeOf;
-    Json.DisposeOf;
+    FreeAndNil(Json);
   end;
 end;
 
@@ -1051,13 +1089,14 @@ begin
       Json.AddPair('retorno', 'OK');
       Json.AddPair('mensagem', 'Atendente solicitado');
       Result := Json.ToString;
+      frmPrincipal.AtendenteSolicitado.Append(Params.ItemsString['mesa'].AsString);
     except
       Json.AddPair('retorno', 'Erro');
       Json.AddPair('mensagem', 'Erro ao solicitar o atendente');
       Result := Json.ToString;
     end;
   finally
-    Json.DisposeOf;
+    FreeAndNil(Json);
   end;
 end;
 

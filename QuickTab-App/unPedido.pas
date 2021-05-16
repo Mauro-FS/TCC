@@ -4,7 +4,7 @@ interface
 
 uses
   System.SysUtils, System.Types, System.Generics.Collections, System.Classes, System.Variants,
-   FMX.Graphics, FMX.DialogService, unProduto, Utils;
+   FMX.Graphics, FMX.DialogService, unProduto, Utils, unDM1;
 
 type
   TPedido = class
@@ -58,8 +58,8 @@ type
     property ListaProdutos: TObjectList<TProduto> read GetListaProdutos write SetListaProdutos;
     function RemoverQtdProduto(IDProduto: Integer): Boolean;
     function AdicionarQtdProduto(IDProduto: Integer): Boolean;
-    function AdicionarProduto(IDProduto: Integer; Quantidade: Integer = 1): Boolean;
-    function DeletarProduto(IDProduto: Integer): Boolean;
+    function AdicionarProduto(IDProduto: Integer; Quantidade: Integer = 1; Observacao: String = ''): Boolean;
+    function DeletarProduto(IDProduto: Integer; out Erro: String): Boolean;
     function GetTotalPedido: Double;
   end;
 
@@ -70,7 +70,7 @@ uses
 
 { TPedido }
 
-function TPedido.AdicionarProduto(IDProduto: Integer; Quantidade: Integer = 1): Boolean;
+function TPedido.AdicionarProduto(IDProduto: Integer; Quantidade: Integer = 1; Observacao: String = ''): Boolean;
 var
   Produto: TProduto;
 begin
@@ -82,6 +82,7 @@ begin
     Produto.Descricao := Venda.ProdutosCardapio.Items[Idproduto].Descricao;
     Produto.Preco := Venda.ProdutosCardapio.Items[Idproduto].Preco;
     Produto.Categoria := Venda.ProdutosCardapio.Items[Idproduto].Categoria;
+    Produto.Observacao := Observacao;
     Produto.Imagem.LoadFromStream(Venda.ProdutosCardapio.Items[Idproduto].Imagem);
     Produto.Quantidade := Quantidade;
     if Assigned(ListaProdutos) then
@@ -117,15 +118,22 @@ begin
   FIDPedido := IDPedido;
 end;
 
-function TPedido.DeletarProduto(IDProduto: Integer): Boolean;
+function TPedido.DeletarProduto(IDProduto: Integer; out Erro: String): Boolean;
 var
-  A: Integer;
+  LSeqProduto: Integer;
+  LQuantidade: Integer;
+  LObservacao: String;
 begin
   try
     Result := False;
-//    ListaProdutos.Items[IDProduto].DisposeOf;
-    ListaProdutos.Remove(ListaProdutos.Items[IDProduto]);
-    Result := True;
+    LSeqProduto:= ListaProdutos.Items[IDProduto].IDProduto;
+    LQuantidade:= ListaProdutos.Items[IDProduto].Quantidade;
+    LObservacao:= ListaProdutos.Items[IDProduto].Observacao;
+    if DM1.RemoverItemPedidoLocal(LSeqProduto, LQuantidade, LObservacao, Erro) then
+    begin
+      ListaProdutos.Remove(ListaProdutos.Items[IDProduto]);
+      Result := True;
+    end;
   except
     Result := False;
   end;

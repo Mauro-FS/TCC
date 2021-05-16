@@ -39,7 +39,7 @@ type
     procedure GetImage;
     function AppEvent(AAppEvent: TApplicationEvent; AContext: TObject): Boolean;
     {$IFDEF ANDROID}
-    procedure imgCameraVoltarClick(Sender: TObject; const Point: TPoint);
+    procedure imgCameraVoltarClick(Sender: TObject; const Point: TPointF);
     {$ELSE}
     procedure imgCameraVoltarClick(Sender: TObject);
     {$ENDIF}
@@ -149,6 +149,7 @@ begin
 
   Camera.Active := False;
   Camera.Quality := FMX.Media.TVideoCaptureQuality.LowQuality;
+  imgCamera.Bitmap.Clear(TAlphaColors.White);
   Result := True;
 end;
 
@@ -183,9 +184,9 @@ end;
 procedure TfrmCamera.FormShow(Sender: TObject);
 begin
   {$IFDEF ANDROID}
-  imgCameraVoltar.OnClick := imgCameraVoltarClick;
-  {$ELSE}
   imgCameraVoltar.OnTap := imgCameraVoltarClick;
+  {$ELSE}
+  imgCameraVoltar.OnClick := imgCameraVoltarClick;
   {$ENDIF}
 end;
 
@@ -251,7 +252,8 @@ begin
           if(ReadResult <> nil)  then
           begin
             FecharCamera;
-            Venda.BuscarCardapio(ReadResult.text);
+            if Venda.BuscarCardapio(ReadResult.text) then
+            Self.Close;
           end;
 
           if (scanBitmap <> nil) then
@@ -265,12 +267,6 @@ begin
     end);
 end;
 
-{$IFDEF ANDROID}
-procedure TfrmCamera.imgCameraVoltarClick(Sender: TObject; const Point: TPoint);
-begin
-  FecharCamera;
-  Self.Close;
-end;
 procedure TfrmCamera.PermissaoCamera;
 begin
   if not MobilePermissions1.Dangerous.Camera then
@@ -278,6 +274,14 @@ begin
     MobilePermissions1.Dangerous.CAMERA := true;
     MobilePermissions1.Apply;
   end;
+end;
+
+
+{$IFDEF ANDROID}
+procedure TfrmCamera.imgCameraVoltarClick(Sender: TObject; const Point: TPointF);
+begin
+  FecharCamera;
+  Self.Close;
 end;
 
 {$ELSE}

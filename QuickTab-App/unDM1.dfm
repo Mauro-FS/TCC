@@ -87,7 +87,19 @@ object DM1: TDM1
   end
   object RequestExcluirProdutoPedido: TRESTRequest
     Client = RESTClient
-    Params = <>
+    Params = <
+      item
+        Name = 'seqpedido'
+      end
+      item
+        Name = 'seqproduto'
+      end
+      item
+        Name = 'quantidade'
+      end
+      item
+        Name = 'observacao'
+      end>
     Resource = 'ExcluirProdutoPedido'
     SynchronizedEvents = False
     Left = 216

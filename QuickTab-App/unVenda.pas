@@ -163,8 +163,8 @@ begin
     frmPrincipal.lblStatusPedido.Text := 'Em Preparo'
   else if Status = 'C' then
   begin
-    frmPrincipal.lblStatusPedido.Text := 'Status';
-    frmPrincipal.lblNroPedido.Text := 'Nro. Pedido';
+    frmPrincipal.lblStatusPedido.Text := '';
+    frmPrincipal.lblNroPedido.Text := 'Status';
     frmPrincipal.lblVlrTotPedido.Text := 'R$0,00';
     frmPrincipal.TabBtnPedido.ActiveTab := frmPrincipal.TabBtnFazerPedido;
     frmPrincipal.tabControlPrincipal.ActiveTab := frmPrincipal.tabMenu;
@@ -173,7 +173,7 @@ begin
   end
   else if Status = 'F' then
   begin
-    frmPrincipal.lblStatusPedido.Text := 'Finalizado';
+    frmPrincipal.lblStatusPedido.Text := '';
     ApagarPedidoAtual;
     ApagarCardapioAtual;
     frmPrincipal.PedidoFinalizado;
@@ -203,12 +203,16 @@ begin
     frmCamera.FLoading.Exibir('Buscando cardápio');
   end);
   TThread.CreateAnonymousThread(procedure
+  var
+    LMesa: String;
   begin
     try
 //      JSONArray := TJSONArray.Create;
+      LMesa := '0';
       QRCode := stringreplace(QrCode, '|', '',    [rfReplaceAll, rfIgnoreCase]);
       BaseUrl :='http://' + Copy(QRCode, 1, QRCode.Length - 3);
-      FMesa := Copy(QRCode, BaseUrl.Length + 1, QRCode.Length);
+      LMesa := Copy(QRCode, QRCode.Length - 2, QRCode.Length);
+      FMesa := LMesa;
       with DM1 do
       begin
         RESTClient.BaseURL := BaseUrl;
@@ -246,6 +250,7 @@ begin
             frmPrincipal.CriarCategorias;
             frmPrincipal.lblCardapioPlaceHolder.Visible := False;
             frmCamera.FLoading.Fechar;
+            frmCamera.Close;
           end;
         end);
       end;
