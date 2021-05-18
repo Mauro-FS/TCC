@@ -4,8 +4,8 @@
         <ProjectFileVersion>12</ProjectFileVersion>
     </ProjectExtensions>
     <PropertyGroup>
-        <DeviceId Condition="'$(Platform)'=='Android'">0052509177</DeviceId>
-        <DeviceId Condition="'$(Platform)'=='Android64'">0052509177</DeviceId>
+        <DeviceId Condition="'$(Platform)'=='Android'"/>
+        <DeviceId Condition="'$(Platform)'=='Android64'"/>
         <DeviceId Condition="'$(Platform)'=='iOSDevice32'"/>
         <DeviceId Condition="'$(Platform)'=='iOSDevice64'"/>
         <DeviceId Condition="'$(Platform)'=='iOSSimulator'">iPhone5</DeviceId>
@@ -64,18 +64,18 @@
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="resources\imagens\catPrato.png" Condition="'$(Config)'=='Debug'">
+        <DeployFile Include="resources\imagens\catEntrada.png" Condition="'$(Config)'=='Release'">
             <RemoteDir>QuickTab\assets\internal\</RemoteDir>
-            <RemoteName>catPrato.png</RemoteName>
+            <RemoteName>catEntrada.png</RemoteName>
             <DeployClass>File</DeployClass>
             <Operation>0</Operation>
             <LocalCommand/>
             <RemoteCommand/>
             <Overwrite>True</Overwrite>
         </DeployFile>
-        <DeployFile Include="resources\imagens\catEntrada.png" Condition="'$(Config)'=='Release'">
+        <DeployFile Include="resources\imagens\catPrato.png" Condition="'$(Config)'=='Debug'">
             <RemoteDir>QuickTab\assets\internal\</RemoteDir>
-            <RemoteName>catEntrada.png</RemoteName>
+            <RemoteName>catPrato.png</RemoteName>
             <DeployClass>File</DeployClass>
             <Operation>0</Operation>
             <LocalCommand/>

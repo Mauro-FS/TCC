@@ -1255,6 +1255,9 @@ begin
 
     if Qry.RecordCount > 0 then
     begin
+      if Qry.FieldByName('seqpedido').IsNull then
+        Exit;
+
       LPedido := Qry.FieldByName('seqpedido').Value;
 
       Qry.SQL.Clear;
